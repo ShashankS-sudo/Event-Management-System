@@ -1,5 +1,6 @@
 const bookingService = require("../services/bookingService");
 const approvalService = require("../services/approvalService");
+const customerBookingActions = require("../services/customerBookingActions");
 
 async function createBookingRequest(req, res, next) {
   try {
@@ -49,4 +50,36 @@ async function decideBooking(req, res, next) {
   }
 }
 
-module.exports = { createBookingRequest, listMyBookings, getMyBooking, decideBooking };
+async function cancelMyBooking(req, res, next) {
+  try {
+    const booking = await customerBookingActions.cancelCustomerBooking(req.user, req.params.id);
+    return res.status(200).json({ success: true, message: "Booking cancelled", booking });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+async function resubmitMyBooking(req, res, next) {
+  try {
+    const booking = await customerBookingActions.resubmitRejectedBooking(req.user, req.params.id, req.body);
+    return res.status(201).json({ success: true, message: "Revised booking request submitted", booking });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+async function requestCancellationException(req, res, next) {
+  try {
+    const booking = await customerBookingActions.requestCancellationException(req.user, req.params.id, req.body?.reason);
+    return res.status(201).json({ success: true, message: "Cancellation exception sent for review", booking });
+  } catch (error) { return next(error); }
+}
+
+async function decideCancellationException(req, res, next) {
+  try {
+    const booking = await customerBookingActions.decideCancellationException(req.user, req.params.id, req.body?.decision, req.body?.reason);
+    return res.status(200).json({ success: true, message: "Cancellation exception decided", booking });
+  } catch (error) { return next(error); }
+}
+
+module.exports = { createBookingRequest, listMyBookings, getMyBooking, decideBooking, cancelMyBooking, resubmitMyBooking, requestCancellationException, decideCancellationException };

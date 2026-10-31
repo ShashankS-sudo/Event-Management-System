@@ -1,7 +1,7 @@
 const Booking = require("../models/Booking");
 const Venue = require("../models/Venue");
 
-const VALID_STATUSES = new Set(["ALL", "PENDING", "APPROVED", "REJECTED", "CANCELLED"]);
+const VALID_STATUSES = new Set(["ALL", "PENDING", "APPROVED", "REJECTED", "CANCELLED", "CANCELLATION_EXCEPTIONS"]);
 
 function isCseHod(user) {
   const department = (user.department || "").trim().toUpperCase();
@@ -21,7 +21,9 @@ async function listApproverBookings(user, requestedStatus = "PENDING") {
   }
 
   const filter = {};
-  if (status !== "ALL") filter.status = status;
+  if (status === "CANCELLATION_EXCEPTIONS") {
+    filter["cancellationException.status"] = "PENDING";
+  } else if (status !== "ALL") filter.status = status;
 
   if (user.role === "HOD") {
     if (!isCseHod(user)) {

@@ -15,7 +15,7 @@ function campusToday() {
   return new Date(Date.now() + 330 * 60 * 1000).toISOString().slice(0, 10);
 }
 
-async function submitBookingRequest(user, input) {
+async function submitBookingRequest(user, input, { resubmittedFrom = null, notificationType = "BOOKING_SUBMITTED" } = {}) {
   const {
     venueSlug,
     eventTitle,
@@ -90,6 +90,7 @@ async function submitBookingRequest(user, input) {
         requester: user._id,
         createdBy: user._id,
         source: "REQUEST",
+        resubmittedFrom,
         eventTitle: eventTitle.trim(),
         department: department.trim(),
         eventDate: new Date(`${eventDate}T00:00:00.000Z`),
@@ -104,8 +105,10 @@ async function submitBookingRequest(user, input) {
       booking = created[0];
       await Notification.create([{
         recipient: user._id,
-        type: "BOOKING_SUBMITTED",
-        message: `Your booking request for ${venue.name} has been submitted for approval.`,
+        type: notificationType,
+        message: notificationType === "BOOKING_RESUBMITTED"
+          ? `Your revised booking request for ${venue.name} has been submitted for approval.`
+          : `Your booking request for ${venue.name} has been submitted for approval.`,
         relatedBooking: booking._id,
       }], { session });
     });

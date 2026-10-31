@@ -9,6 +9,10 @@ const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
 
 const app = express();
+const allowedOrigins = (process.env.FRONTEND_ORIGINS || process.env.FRONTEND_ORIGIN || "http://localhost:5173")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 // Add security-related HTTP headers
 app.use(cookieParser());
@@ -17,7 +21,7 @@ app.use(helmet());
 // Allow our React frontend to communicate with the backend
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: allowedOrigins,
     credentials: true,
   })
 );

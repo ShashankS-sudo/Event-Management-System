@@ -182,6 +182,7 @@ async function login(req, res) {
         name: user.name,
         email: user.email,
         role: user.role,
+        department: user.department,
       },
     });
   } catch (error) {

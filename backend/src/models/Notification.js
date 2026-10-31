@@ -13,6 +13,7 @@ const notificationSchema = new mongoose.Schema(
         "BOOKING_CANCELLED",
         "BOOKING_RESUBMITTED",
         "ADMIN_ACTION",
+        "CANCELLATION_EXCEPTION",
       ],
       required: true,
     },

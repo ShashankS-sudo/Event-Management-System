@@ -7,6 +7,8 @@ const blockedSlotSchema = new mongoose.Schema(
     endAt: { type: Date, required: true },
     reason: { type: String, required: true, trim: true, minlength: 3, maxlength: 500 },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    removedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    removedAt: { type: Date, default: null },
     isActive: { type: Boolean, default: true, index: true },
   },
   { timestamps: true }

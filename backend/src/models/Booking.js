@@ -58,6 +58,14 @@ const bookingSchema = new mongoose.Schema(
     decidedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
     decidedAt: { type: Date, default: null },
     resubmittedFrom: { type: mongoose.Schema.Types.ObjectId, ref: "Booking", default: null },
+    cancellationException: {
+      status: { type: String, enum: ["NONE", "PENDING", "APPROVED", "REJECTED"], default: "NONE" },
+      reason: { type: String, trim: true, default: "", maxlength: 1000 },
+      requestedAt: { type: Date, default: null },
+      decidedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+      decidedAt: { type: Date, default: null },
+      decisionReason: { type: String, trim: true, default: "", maxlength: 1000 },
+    },
     history: { type: [bookingHistorySchema], default: [] },
   },
   { timestamps: true }
