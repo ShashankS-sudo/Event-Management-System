@@ -1,0 +1,124 @@
+
+.venues-page {
+  min-height: 100vh;
+  padding: 48px 5%;
+  background: #f8fafc;
+  color: #142746;
+  font-family: Arial, sans-serif;
+}
+
+.venues-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 30px;
+}
+
+.venues-heading h1 {
+  margin: 10px 0;
+  font-size: clamp(30px, 4vw, 40px);
+}
+
+.venues-heading p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.venues-home-link {
+  flex-shrink: 0;
+  color: #1554b5;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.venues-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.venue-list-card {
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 5px 18px rgba(15, 35, 70, 0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.venue-list-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(15, 35, 70, 0.1);
+}
+
+.venue-list-card > img {
+  display: block;
+  width: 100%;
+  height: 230px;
+  object-fit: cover;
+  background: #e2e8f0;
+}
+
+.venue-list-content {
+  padding: 22px;
+}
+
+.venue-type {
+  color: #1554b5;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.venue-list-content h2 {
+  margin: 10px 0;
+  font-size: 20px;
+}
+
+.venue-list-content p {
+  min-height: 36px;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.venue-details-button {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 11px 17px;
+  border: 1px solid #1554b5;
+  border-radius: 6px;
+  color: #1554b5;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.venue-details-button:hover {
+  background: #1554b5;
+  color: #fff;
+}
+
+@media (max-width: 700px) {
+  .venues-page {
+    padding: 30px 5%;
+  }
+
+  .venues-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .venues-list {
+    grid-template-columns: 1fr;
+  }
+
+  .venue-list-card > img {
+    height: 200px;
+  }
+}

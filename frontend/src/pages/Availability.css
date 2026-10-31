@@ -1,0 +1,203 @@
+
+.availability-page {
+  min-height: 100vh;
+  padding: 36px 5%;
+  background: #f8fafc;
+  color: #142746;
+  font-family: Arial, sans-serif;
+}
+
+.availability-back {
+  display: inline-block;
+  margin-bottom: 22px;
+  color: #1554b5;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.availability-card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 34px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 6px 24px rgba(15, 35, 70, 0.06);
+}
+
+.availability-eyebrow {
+  color: #1554b5;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.availability-card > h1 {
+  margin: 12px 0;
+  font-size: 32px;
+}
+
+.availability-description {
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.selected-venue {
+  margin: 25px 0;
+  padding: 18px;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  background: #eff6ff;
+}
+
+.selected-venue > span {
+  color: #475569;
+  font-size: 12px;
+}
+
+.selected-venue h2 {
+  margin: 8px 0 0;
+  font-size: 19px;
+}
+
+.availability-card > label {
+  display: block;
+  margin-bottom: 9px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.availability-card > input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  background: #fff;
+  font: inherit;
+}
+
+.availability-card > input:focus {
+  border-color: #1554b5;
+  outline: 2px solid #dbeafe;
+}
+
+.slots-heading {
+  margin: 28px 0 8px;
+  font-size: 18px;
+}
+
+.slots-note {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.time-slot-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.time-slot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  background: #fff;
+  color: #142746;
+  text-align: left;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.time-slot:disabled {
+  background: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.time-slot.selected {
+  border-color: #1554b5;
+  background: #eff6ff;
+}
+
+.slot-status {
+  flex-shrink: 0;
+  color: #1554b5;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.availability-disclaimer {
+  margin-top: 20px;
+  padding: 12px;
+  border-radius: 7px;
+  background: #fff7ed;
+  color: #9a3412;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.availability-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.availability-secondary,
+.availability-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 20px;
+  border: 1px solid #1554b5;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.availability-secondary {
+  color: #1554b5;
+  background: #fff;
+}
+
+.availability-primary {
+  background: #1554b5;
+  color: #fff;
+  cursor: pointer;
+}
+
+.availability-primary:disabled {
+  border-color: #94a3b8;
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+@media (max-width: 550px) {
+  .availability-page {
+    padding: 24px 5%;
+  }
+
+  .availability-card {
+    padding: 22px;
+  }
+
+  .availability-card > h1 {
+    font-size: 27px;
+  }
+
+  .time-slot {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

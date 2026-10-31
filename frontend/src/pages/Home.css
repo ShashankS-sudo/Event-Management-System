@@ -1,0 +1,384 @@
+
+.home-page {
+  min-height: 100vh;
+  background: #f8fafc;
+  color: #142746;
+  font-family: Arial, sans-serif;
+}
+
+.site-header {
+  min-height: 76px;
+  padding: 12px 5%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  background: #fff;
+  border-bottom: 1px solid #e5eaf1;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #142746;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.brand-emblem {
+  width: 43px;
+  height: 43px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #163f7a;
+  border-radius: 50%;
+  color: #163f7a;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.brand strong,
+.brand small {
+  display: block;
+}
+
+.brand strong {
+  font-size: 16px;
+}
+
+.brand small {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.main-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 25px;
+  flex-wrap: wrap;
+}
+
+.main-nav a,
+.text-link {
+  color: #334155;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.main-nav a:hover,
+.text-link:hover {
+  color: #1554b5;
+}
+
+.header-login,
+.primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border-radius: 7px;
+  background: #123e80;
+  color: #fff;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.header-login {
+  padding: 12px 23px;
+  flex-shrink: 0;
+}
+
+.hero {
+  position: relative;
+  min-height: 355px;
+  margin: 24px 5% 48px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 15px;
+  background: #eaf1fb;
+}
+
+.hero-content {
+  z-index: 1;
+  width: 54%;
+  padding: 40px 0 40px 42px;
+}
+
+.eyebrow {
+  color: #2457a0;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+.hero h1 {
+  margin: 15px 0;
+  color: #142746;
+  font-size: clamp(34px, 4vw, 53px);
+  line-height: 1.08;
+  letter-spacing: -1.5px;
+}
+
+.hero h1 span {
+  color: #1554b5;
+}
+
+.hero-content > p {
+  max-width: 370px;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.primary-button {
+  margin-top: 12px;
+  padding: 14px 20px;
+}
+
+.primary-button:hover,
+.header-login:hover {
+  background: #0b2e61;
+}
+
+.hero-image {
+  position: absolute;
+  inset: 0 0 0 40%;
+}
+
+.hero-image::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(90deg, #eaf1fb 0%, rgba(234, 241, 251, 0.4) 25%, transparent 65%);
+}
+
+.hero-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.venues-section {
+  padding: 0 5% 45px;
+}
+
+.section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 22px;
+}
+
+.section-heading h2 {
+  margin: 8px 0;
+  font-size: 28px;
+}
+
+.section-heading p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.text-link {
+  padding-bottom: 6px;
+  color: #1554b5;
+}
+
+.venue-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.venue-card {
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 11px;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(15, 35, 70, 0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.venue-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 9px 24px rgba(15, 35, 70, 0.1);
+}
+
+.venue-card > img {
+  display: block;
+  width: 100%;
+  height: 155px;
+  object-fit: cover;
+  background: #e2e8f0;
+}
+
+.venue-card-content {
+  padding: 17px;
+}
+
+.venue-card h3 {
+  margin: 0 0 9px;
+  font-size: 16px;
+}
+
+.venue-card-content > p {
+  min-height: 36px;
+  margin: 0 0 14px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.venue-capacity {
+  margin-bottom: 15px;
+  color: #475569;
+  font-size: 11px;
+}
+
+.venue-capacity span {
+  color: #1554b5;
+}
+
+.venue-button {
+  display: block;
+  padding: 10px 8px;
+  border: 1px solid #b7c9e4;
+  border-radius: 6px;
+  color: #1554b5;
+  text-align: center;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.venue-button:hover {
+  background: #edf4ff;
+}
+
+.benefits-section {
+  margin: 0 5% 42px;
+  padding: 25px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+  border: 1px solid #e8edf5;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.benefit {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.benefit-icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: #eaf1ff;
+  color: #1554b5;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.benefit h3 {
+  margin: 0 0 5px;
+  font-size: 13px;
+}
+
+.benefit p {
+  margin: 0;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.site-footer {
+  padding: 28px 5%;
+  border-top: 1px solid #e2e8f0;
+  background: #fff;
+  color: #475569;
+  text-align: center;
+  font-size: 12px;
+}
+
+.site-footer p {
+  margin-bottom: 0;
+}
+
+@media (max-width: 1000px) {
+  .main-nav {
+    gap: 12px;
+  }
+
+  .venue-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .benefits-section {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .site-header {
+    flex-wrap: wrap;
+    padding: 14px 5%;
+  }
+
+  .main-nav {
+    order: 3;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .hero {
+    min-height: 420px;
+    align-items: flex-end;
+    margin-top: 16px;
+  }
+
+  .hero-content {
+    width: 100%;
+    padding: 30px 24px;
+    background: linear-gradient(0deg, #eaf1fb 65%, rgba(234, 241, 251, 0.85));
+  }
+
+  .hero-image {
+    inset: 0 0 35% 0;
+  }
+
+  .hero-image::after {
+    background: linear-gradient(0deg, #eaf1fb 0%, transparent 60%);
+  }
+
+  .section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .venue-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .venue-card > img {
+    height: 200px;
+  }
+
+  .benefits-section {
+    grid-template-columns: 1fr;
+    padding: 20px;
+  }
+}

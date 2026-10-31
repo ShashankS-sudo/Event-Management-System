@@ -1,0 +1,157 @@
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  background: linear-gradient(135deg, #eef4ff, #f8fafc);
+  font-family: Arial, sans-serif;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 410px;
+  padding: 36px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 12px 35px rgba(15, 35, 70, 0.12);
+}
+
+.college-logo {
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #123c78;
+  border-radius: 50%;
+  color: #123c78;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.login-card h1 {
+  margin: 0;
+  color: #10264d;
+  text-align: center;
+  font-size: 28px;
+}
+
+.login-card > p {
+  color: #64748b;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.login-card form {
+  margin-top: 28px;
+}
+
+.login-card label {
+  display: block;
+  margin: 18px 0 8px;
+  color: #1e293b;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.login-card input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px 13px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  outline: none;
+  font-size: 14px;
+}
+
+.login-card input:focus {
+  border-color: #1758b5;
+  box-shadow: 0 0 0 3px rgba(23, 88, 181, 0.12);
+}
+
+.password-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.password-field input {
+  min-width: 0;
+  flex: 1;
+}
+
+.show-password,
+.forgot-password button {
+  border: none;
+  background: none;
+  color: #1758b5;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.show-password {
+  padding: 8px 0;
+}
+
+.forgot-password {
+  display: flex;
+  justify-content: flex-end;
+  margin: 12px 0 20px;
+}
+
+.login-button {
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: 7px;
+  background: #1554b5;
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.login-button:hover {
+  background: #103f8c;
+}
+
+.login-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.login-card .login-message {
+  padding: 10px;
+  border-radius: 6px;
+  background: #eff6ff;
+  color: #1e40af;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.login-card .signup-link {
+  margin-top: 24px;
+  color: #475569;
+  font-size: 13px;
+}
+
+.signup-link a {
+  color: #1554b5;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.signup-link a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: 26px 20px;
+  }
+}
