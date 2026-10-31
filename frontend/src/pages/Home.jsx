@@ -51,7 +51,7 @@ function Home() {
         <nav className="main-nav">
           <Link to="/">Home</Link>
           <Link to="/venues">Venues</Link>
-          <Link to="/login">My Bookings</Link>
+          <Link to="/bookings">My Bookings</Link>
           <a href="#benefits">Guidelines</a>
           <a href="#about">About</a>
         </nav>

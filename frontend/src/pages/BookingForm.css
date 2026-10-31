@@ -1,0 +1,74 @@
+.booking-page {
+  min-height: 100vh;
+  padding: 32px 5%;
+  background: #f8fafc;
+  color: #142746;
+  font-family: Arial, sans-serif;
+}
+
+.booking-back {
+  display: inline-block;
+  margin-bottom: 18px;
+  color: #1554b5;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.booking-panel {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 34px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 6px 24px rgba(15, 35, 70, 0.06);
+}
+
+.booking-eyebrow { color: #1554b5; font-size: 11px; font-weight: 800; letter-spacing: 1px; }
+.booking-panel > h1, .booking-confirmation h1 { margin: 12px 0 8px; font-size: 30px; color: #142746; }
+.booking-intro, .booking-panel > p { margin: 0 0 22px; color: #64748b; font-size: 14px; line-height: 1.6; }
+.booking-summary-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 20px 0 24px; padding: 16px; border-radius: 9px; background: #eff6ff; }
+.booking-summary-strip div span, .booking-summary-strip div strong { display: block; }
+.booking-summary-strip div span { margin-bottom: 5px; color: #64748b; font-size: 11px; }
+.booking-summary-strip div strong { color: #142746; font-size: 13px; }
+.booking-panel form > label { display: block; margin: 16px 0 7px; color: #24364e; font-size: 13px; font-weight: 700; }
+.booking-panel input:not([type="checkbox"]), .booking-panel textarea { box-sizing: border-box; width: 100%; padding: 11px 12px; border: 1px solid #cbd5e1; border-radius: 7px; background: #fff; color: #142746; font: inherit; font-size: 14px; }
+.booking-panel textarea { resize: vertical; line-height: 1.5; }
+.booking-panel input:focus, .booking-panel textarea:focus { border-color: #1554b5; outline: 2px solid #dbeafe; }
+.booking-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.booking-field-row small { display: block; margin-top: 5px; color: #64748b; font-size: 11px; }
+.facility-options { margin: 18px 0; padding: 14px; border: 1px solid #e2e8f0; border-radius: 8px; }
+.facility-options legend { padding: 0 5px; color: #24364e; font-size: 13px; font-weight: 700; }
+.facility-option { display: inline-flex; align-items: center; gap: 7px; margin: 5px 16px 5px 0; color: #475569; font-size: 13px; }
+.review-details { margin: 20px 0; padding: 4px 18px; border: 1px solid #e2e8f0; border-radius: 9px; }
+.review-details p { display: grid; grid-template-columns: minmax(150px, 0.7fr) 1.3fr; gap: 15px; padding: 13px 0; border-bottom: 1px solid #eef2f7; font-size: 13px; line-height: 1.5; }
+.review-details p:last-child { border-bottom: 0; }
+.review-details strong { color: #475569; }
+.review-details span { color: #142746; overflow-wrap: anywhere; }
+.review-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.booking-primary-button, .booking-secondary-button, .booking-primary-link { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 0 18px; border: 1px solid #1554b5; border-radius: 7px; font-size: 13px; font-weight: 700; text-decoration: none; cursor: pointer; }
+.booking-primary-button, .booking-primary-link { background: #1554b5; color: #fff; }
+.booking-primary-button:disabled { opacity: 0.65; cursor: wait; }
+.booking-secondary-button { background: #fff; color: #1554b5; }
+.booking-error { margin: 16px 0; padding: 11px; border-radius: 7px; background: #fef2f2; color: #b91c1c; font-size: 13px; }
+.booking-confirmation { text-align: center; }
+.booking-confirmation > p { max-width: 530px; margin: 0 auto 20px; color: #64748b; font-size: 14px; line-height: 1.6; }
+.confirmation-check { width: 62px; height: 62px; margin: 22px auto 10px; display: grid; place-items: center; border-radius: 50%; background: #dcfce7; color: #16834f; font-size: 34px; font-weight: 700; }
+.booking-reference { margin: 18px 0; padding: 14px; border-radius: 8px; background: #ecfdf5; }
+.booking-reference span, .booking-reference strong { display: block; }
+.booking-reference span { margin-bottom: 5px; color: #64748b; font-size: 11px; }
+.booking-reference strong { color: #14532d; font-size: 14px; overflow-wrap: anywhere; }
+.pending-badge { color: #a16207 !important; font-weight: 700; }
+.booking-confirmation .booking-primary-link { margin-top: 10px; }
+
+@media (max-width: 600px) {
+  .booking-page { padding: 22px 4%; }
+  .booking-panel { padding: 22px 18px; }
+  .booking-summary-strip { grid-template-columns: 1fr; }
+  .review-details p { grid-template-columns: 1fr; gap: 4px; }
+  .review-actions { flex-direction: column-reverse; }
+  .review-actions button { width: 100%; }
+}

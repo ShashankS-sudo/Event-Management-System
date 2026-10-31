@@ -1,9 +1,12 @@
 
 import { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import "./Login.css";
 
 function Login() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -16,12 +19,12 @@ function Login() {
     setLoading(true);
 
     try {
-      const response = await api.post("/auth/login", {
+      await api.post("/auth/login", {
         email,
         password,
       });
-
-      setMessage(`Welcome back, ${response.data.user.name}!`);
+      const destination = location.state?.from;
+      navigate(destination ? `${destination.pathname}${destination.search || ""}` : "/venues", { replace: true });
     } catch (error) {
       setMessage(
         error.response?.data?.message ||
@@ -102,7 +105,7 @@ function Login() {
 
         <p className="signup-link">
           Don't have an account?{" "}
-          <a href="/register">Sign Up</a>
+          <Link to="/register">Sign Up</Link>
         </p>
       </section>
     </main>

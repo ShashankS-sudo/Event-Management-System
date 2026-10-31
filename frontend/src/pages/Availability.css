@@ -97,6 +97,19 @@
   line-height: 1.6;
 }
 
+.availability-state {
+  min-height: 24px;
+  margin-top: 12px;
+}
+
+.availability-error {
+  padding: 12px;
+  border-radius: 7px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 13px;
+}
+
 .time-slot-list {
   display: grid;
   gap: 10px;
@@ -124,6 +137,24 @@
   cursor: not-allowed;
 }
 
+.time-slot.booked,
+.time-slot.blocked,
+.time-slot.closed {
+  border-color: #e2e8f0;
+}
+
+.time-slot.booked .slot-status {
+  color: #b42332;
+}
+
+.time-slot.blocked .slot-status {
+  color: #9a5b00;
+}
+
+.time-slot.closed .slot-status {
+  color: #64748b;
+}
+
 .time-slot.selected {
   border-color: #1554b5;
   background: #eff6ff;
@@ -135,6 +166,32 @@
   font-size: 12px;
   font-weight: 700;
 }
+
+.availability-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 16px;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.availability-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.available-dot { background: #18a86b; }
+.booked-dot { background: #e33b4b; }
+.blocked-dot { background: #e89a19; }
+.closed-dot { background: #94a3b8; }
 
 .availability-disclaimer {
   margin-top: 20px;
