@@ -44,6 +44,18 @@
 .booking-history li div { display: grid; gap: 4px; }
 .booking-history li strong { color: #24364e; font-size: 12px; }
 .booking-history li span, .booking-history li small { color: #64748b; font-size: 11px; }
+.booking-action-notice { max-width: 1050px; margin: 0 auto 14px; padding: 12px; border-radius: 7px; background: #ecfdf5; color: #15803d; font-size: 12px; }
+.booking-owner-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 18px; }
+.booking-cancel-button, .booking-resubmit-button { min-height: 39px; padding: 0 14px; border-radius: 7px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.booking-cancel-button { border: 1px solid #fecaca; background: #fff; color: #b91c1c; }
+.booking-resubmit-button { border: 1px solid #1554b5; background: #1554b5; color: #fff; }
+.booking-cancel-button:disabled, .booking-resubmit-button:disabled { opacity: .55; cursor: wait; }
+.booking-resubmit-form { display: grid; gap: 13px; margin-top: 23px; padding: 20px; border: 1px solid #dbeafe; border-radius: 9px; background: #f8fbff; }
+.booking-resubmit-form h2 { margin: 0; color: #142746; font-size: 17px; }
+.booking-resubmit-form label { display: grid; gap: 6px; color: #475569; font-size: 11px; font-weight: 700; }
+.booking-resubmit-form input, .booking-resubmit-form textarea, .booking-resubmit-form select { box-sizing: border-box; width: 100%; min-height: 39px; padding: 9px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #142746; font: 13px Arial, sans-serif; }
+.booking-resubmit-form textarea { resize: vertical; }
+.resubmit-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 11px; }
 
 @media (max-width: 620px) {
   .bookings-page { padding: 22px 4%; }
@@ -52,4 +64,6 @@
   .booking-detail-grid { grid-template-columns: 1fr; }
   .booking-detail-grid .booking-detail-wide { grid-column: auto; }
   .booking-detail-heading { flex-direction: column; }
+  .resubmit-row { grid-template-columns: 1fr; }
+  .booking-resubmit-form .booking-owner-actions { align-items: stretch; flex-direction: column; }
 }

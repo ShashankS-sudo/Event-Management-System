@@ -9,6 +9,12 @@ function BookingDetails() {
   const navigate = useNavigate();
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [working, setWorking] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [showResubmit, setShowResubmit] = useState(false);
+  const [resubmitForm, setResubmitForm] = useState(null);
+  const [exceptionReason, setExceptionReason] = useState("");
+  const [showExceptionForm, setShowExceptionForm] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -29,11 +35,56 @@ function BookingDetails() {
   const slot = booking?.venue?.timeSlots?.find((item) => item.key === booking.slotKey);
   const eventDate = booking?.eventDate ? new Date(booking.eventDate).toLocaleDateString("en-IN", { timeZone: "UTC", day: "2-digit", month: "long", year: "numeric" }) : "—";
 
+  async function cancelBooking() {
+    if (!window.confirm("Cancel this booking request?")) return;
+    setWorking(true);
+    setError("");
+    setNotice("");
+    try {
+      const response = await api.patch(`/bookings/${id}/cancel`);
+      setBooking(response.data.booking);
+      setNotice("Booking cancelled.");
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || "Could not cancel this booking.");
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  async function requestLateCancellation(event) {
+    event.preventDefault();
+    setWorking(true); setError(""); setNotice("");
+    try {
+      const response = await api.post(`/bookings/${id}/cancellation-exception`, { reason: exceptionReason });
+      setBooking(response.data.booking); setShowExceptionForm(false); setNotice("Cancellation request sent to approvers for review.");
+    } catch (requestError) { setError(requestError.response?.data?.message || "Could not request a late cancellation."); }
+    finally { setWorking(false); }
+  }
+
+  async function resubmitBooking(event) {
+    event.preventDefault();
+    setWorking(true);
+    setError("");
+    try {
+      const response = await api.post(`/bookings/${id}/resubmit`, {
+        ...resubmitForm,
+        expectedAttendees: Number(resubmitForm.expectedAttendees),
+        facilitiesRequested: booking.facilitiesRequested || [],
+      });
+      navigate(`/bookings/${response.data.booking._id}`, { replace: true });
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || "Could not resubmit this booking.");
+    } finally {
+      setWorking(false);
+    }
+  }
+
   return (
     <main className="bookings-page">
       <Link to="/bookings" className="bookings-back">← Back to My Bookings</Link>
       {loading && <p className="bookings-state" aria-live="polite">Loading booking details…</p>}
       {error && <p className="bookings-error" role="alert">{error}</p>}
+      {notice && <p className="booking-action-notice" role="status">{notice}</p>}
       {booking && !loading && (
         <section className="booking-detail-card">
           <div className="booking-detail-heading">
@@ -63,6 +114,28 @@ function BookingDetails() {
               </li>
             ))}
           </ol>
+          <div className="booking-owner-actions">
+            {booking.source === "REQUEST" && ["PENDING", "APPROVED"].includes(booking.status) && <button type="button" className="booking-cancel-button" onClick={cancelBooking} disabled={working}>{working ? "Working…" : "Cancel Booking"}</button>}
+            {booking.source === "REQUEST" && ["PENDING", "APPROVED"].includes(booking.status) && (!booking.cancellationException || booking.cancellationException.status === "NONE") && <button type="button" className="booking-resubmit-button" onClick={() => setShowExceptionForm((value) => !value)}>Request Late Cancellation</button>}
+            {booking.cancellationException?.status && booking.cancellationException.status !== "NONE" && <span className={`booking-status ${booking.cancellationException.status.toLowerCase()}`}>Late cancellation: {booking.cancellationException.status}</span>}
+            {booking.source === "REQUEST" && booking.status === "REJECTED" && !showResubmit && <button type="button" className="booking-resubmit-button" onClick={() => { setResubmitForm({ eventTitle: booking.eventTitle, department: booking.department, eventDate: new Date(booking.eventDate).toISOString().slice(0, 10), slotKey: booking.slotKey, expectedAttendees: String(booking.expectedAttendees), eventDescription: booking.eventDescription, additionalRequirements: booking.additionalRequirements || "" }); setShowResubmit(true); setError(""); }}>Edit and Resubmit</button>}
+          </div>
+          {showExceptionForm && <form className="booking-resubmit-form" onSubmit={requestLateCancellation}><h2>Request Late Cancellation</h2><p>Approvers will review the reason. An approved request cancels the booking and releases its reserved slot.</p><label>Reason<textarea value={exceptionReason} onChange={(event) => setExceptionReason(event.target.value)} minLength={10} maxLength={1000} rows={4} required placeholder="Explain why the booking needs to be cancelled after the cutoff" /></label><div className="booking-owner-actions"><button type="button" className="booking-cancel-button" onClick={() => setShowExceptionForm(false)} disabled={working}>Back</button><button type="submit" className="booking-resubmit-button" disabled={working || exceptionReason.trim().length < 10}>{working ? "Sending…" : "Send Request"}</button></div></form>}
+          {showResubmit && resubmitForm && (
+            <form className="booking-resubmit-form" onSubmit={resubmitBooking}>
+              <h2>Edit and Resubmit Request</h2>
+              <label>Event title<input value={resubmitForm.eventTitle} onChange={(event) => setResubmitForm({ ...resubmitForm, eventTitle: event.target.value })} minLength={3} maxLength={160} required /></label>
+              <label>Department / organization<input value={resubmitForm.department} onChange={(event) => setResubmitForm({ ...resubmitForm, department: event.target.value })} maxLength={120} required /></label>
+              <div className="resubmit-row">
+                <label>Event date<input type="date" value={resubmitForm.eventDate} onChange={(event) => setResubmitForm({ ...resubmitForm, eventDate: event.target.value })} required /></label>
+                <label>Time slot<select value={resubmitForm.slotKey} onChange={(event) => setResubmitForm({ ...resubmitForm, slotKey: event.target.value })} required>{booking.venue?.timeSlots?.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}</select></label>
+                <label>Expected attendees<input type="number" min="1" max="100000" value={resubmitForm.expectedAttendees} onChange={(event) => setResubmitForm({ ...resubmitForm, expectedAttendees: event.target.value })} required /></label>
+              </div>
+              <label>Event description<textarea value={resubmitForm.eventDescription} onChange={(event) => setResubmitForm({ ...resubmitForm, eventDescription: event.target.value })} minLength={10} maxLength={4000} rows={4} required /></label>
+              <label>Additional requirements<textarea value={resubmitForm.additionalRequirements} onChange={(event) => setResubmitForm({ ...resubmitForm, additionalRequirements: event.target.value })} maxLength={2000} rows={3} /></label>
+              <div className="booking-owner-actions"><button type="button" className="booking-cancel-button" onClick={() => setShowResubmit(false)} disabled={working}>Discard Edits</button><button type="submit" className="booking-resubmit-button" disabled={working}>{working ? "Submitting…" : "Submit Revised Request"}</button></div>
+            </form>
+          )}
         </section>
       )}
     </main>

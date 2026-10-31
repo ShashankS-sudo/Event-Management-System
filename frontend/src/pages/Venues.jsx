@@ -1,77 +1,41 @@
-
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import api from "../services/api";
+import { venueCapacity, venueDescription, venueImage } from "../utils/venuePresentation";
 import "./Venues.css";
 
-const venues = [
-  {
-    id: "auditorium",
-    name: "SJBIT Auditorium",
-    type: "Indoor Auditorium",
-    description: "For seminars, conferences and cultural events.",
-    image:
-      "https://images.unsplash.com/photo-1503095396549-807759245b35?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: "cricket-ground",
-    name: "Cricket Ground",
-    type: "Sports Ground",
-    description: "For cricket matches and outdoor activities.",
-    image:
-      "https://images.unsplash.com/photo-1531415074968-036ba1b575da?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: "basketball-court",
-    name: "Basketball Court",
-    type: "Outdoor Court",
-    description: "For basketball games and sports activities.",
-    image:
-      "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: "cse-seminar-hall",
-    name: "CSE Seminar Hall",
-    type: "Seminar Hall",
-    description: "For CSE department seminars and meetings.",
-    image:
-      "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=800&q=80",
-  },
-];
-
 function Venues() {
+  const [venues, setVenues] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [retry, setRetry] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+    api.get("/venues")
+      .then((response) => { if (active) setVenues(response.data.venues || []); })
+      .catch((requestError) => { if (active) setError(requestError.response?.data?.message || "Could not load venues."); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [retry]);
+
   return (
     <main className="venues-page">
       <header className="venues-heading">
-        <div>
-          <span className="eyebrow">SJBIT VENUE BOOKING SYSTEM</span>
-          <h1>Choose a Venue</h1>
-          <p>Select a venue to view its details and check availability.</p>
-        </div>
-
-        <Link to="/" className="venues-home-link">
-          ← Back to Home
-        </Link>
+        <div><span className="eyebrow">SJBIT VENUE BOOKING SYSTEM</span><h1>Choose a Venue</h1><p>Select a venue to view its confirmed details and check availability.</p></div>
+        <Link to="/" className="venues-home-link">← Back to Home</Link>
       </header>
-
-      <section className="venues-list">
-        {venues.map((venue) => (
-          <article className="venue-list-card" key={venue.id}>
-            <img src={venue.image} alt={venue.name} />
-
-            <div className="venue-list-content">
-              <span className="venue-type">{venue.type}</span>
-              <h2>{venue.name}</h2>
-              <p>{venue.description}</p>
-
-              <Link
-                to={`/venues/${venue.id}`}
-                className="venue-details-button"
-              >
-                View Details →
-              </Link>
-            </div>
-          </article>
-        ))}
-      </section>
+      {loading && <p className="venues-state" aria-live="polite">Loading venues…</p>}
+      {error && <div className="venues-state venues-error" role="alert"><p>{error}</p><button type="button" onClick={() => { setError(""); setLoading(true); setRetry((value) => value + 1); }}>Try again</button></div>}
+      {!loading && !error && venues.length === 0 && <p className="venues-state">No active venues have been published yet.</p>}
+      {!error && venues.length > 0 && <section className="venues-list" aria-label="Available venues">
+        {venues.map((venue) => <article className="venue-list-card" key={venue._id}>
+          <img src={venueImage(venue.slug)} alt={venue.name} />
+          <div className="venue-list-content"><span className="venue-type">{venue.type}</span><h2>{venue.name}</h2><p>{venueDescription(venue)}</p><p className="venue-capacity-label">{venueCapacity(venue)}</p>
+            <Link to={`/venues/${venue.slug}`} className="venue-details-button">View Details →</Link>
+          </div>
+        </article>)}
+      </section>}
     </main>
   );
 }

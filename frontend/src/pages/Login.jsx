@@ -2,11 +2,13 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import api from "../services/api";
+import useAuth from "../context/useAuth";
 import "./Login.css";
 
 function Login() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { setUser } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -19,12 +21,16 @@ function Login() {
     setLoading(true);
 
     try {
-      await api.post("/auth/login", {
+      const response = await api.post("/auth/login", {
         email,
         password,
       });
+      setUser(response.data.user);
       const destination = location.state?.from;
-      navigate(destination ? `${destination.pathname}${destination.search || ""}` : "/venues", { replace: true });
+      const department = (response.data.user.department || "").trim().toUpperCase();
+      const assignedHod = response.data.user.role === "HOD" && ["CSE", "COMPUTER SCIENCE AND ENGINEERING", "COMPUTER SCIENCE & ENGINEERING"].includes(department);
+      const privileged = ["ADMIN", "PRINCIPAL"].includes(response.data.user.role) || assignedHod;
+      navigate(destination ? `${destination.pathname}${destination.search || ""}` : privileged ? "/admin/dashboard" : "/venues", { replace: true });
     } catch (error) {
       setMessage(
         error.response?.data?.message ||
@@ -44,13 +50,13 @@ function Login() {
         <p>Login to continue to Venue Booking System</p>
 
         <form onSubmit={handleSubmit}>
-          <label htmlFor="email">USN / Email</label>
+          <label htmlFor="email">Email</label>
           <input
             id="email"
             type="text"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            placeholder="Enter your USN or email"
+            placeholder="Enter your email address"
             autoComplete="username"
             required
           />

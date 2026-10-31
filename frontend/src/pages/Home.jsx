@@ -1,42 +1,29 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import api from "../services/api";
+import { venueCapacity, venueDescription, venueImage } from "../utils/venuePresentation";
+import useAuth from "../context/useAuth";
 import "./Home.css";
 
-const venues = [
-  {
-    id: 1,
-    name: "SJBIT Auditorium",
-    description: "For seminars, conferences and cultural events",
-    capacity: "Capacity to be confirmed",
-    image:
-      "https://images.unsplash.com/photo-1503095396549-807759245b35?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: 2,
-    name: "Cricket Ground",
-    description: "For cricket matches and outdoor activities",
-    capacity: "Capacity to be confirmed",
-    image:
-      "https://images.unsplash.com/photo-1531415074968-036ba1b575da?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: 3,
-    name: "Basketball Court",
-    description: "For basketball games and sports activities",
-    capacity: "Outdoor sports venue",
-    image:
-      "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: 4,
-    name: "CSE Seminar Hall",
-    description: "For department seminars and meetings",
-    capacity: "Capacity to be confirmed",
-    image:
-      "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=800&q=80",
-  },
-];
-
 function Home() {
+  const [venues, setVenues] = useState([]);
+  const [venuesLoading, setVenuesLoading] = useState(true);
+  const [venuesError, setVenuesError] = useState("");
+  const { user, logout } = useAuth();
+
+  async function handleLogout() {
+    try { await logout(); } catch { setVenuesError("Could not sign out. Please try again."); }
+  }
+
+  useEffect(() => {
+    let active = true;
+    api.get("/venues")
+      .then((response) => { if (active) setVenues(response.data.venues || []); })
+      .catch((error) => { if (active) setVenuesError(error.response?.data?.message || "Venue information is temporarily unavailable."); })
+      .finally(() => { if (active) setVenuesLoading(false); });
+    return () => { active = false; };
+  }, []);
+
   return (
     <div className="home-page">
       <header className="site-header">
@@ -52,13 +39,12 @@ function Home() {
           <Link to="/">Home</Link>
           <Link to="/venues">Venues</Link>
           <Link to="/bookings">My Bookings</Link>
-          <a href="#benefits">Guidelines</a>
+          <Link to="/notifications">Notifications</Link>
+          <Link to="/guidelines">Guidelines</Link>
           <a href="#about">About</a>
         </nav>
 
-        <Link to="/login" className="header-login">
-          Login
-        </Link>
+        {user ? <button type="button" className="header-login" onClick={handleLogout}>Sign Out</button> : <Link to="/login" className="header-login">Login</Link>}
       </header>
 
       <main>
@@ -74,7 +60,7 @@ function Home() {
               Find and request campus venues for academic, cultural,
               sports and departmental events — all in one place.
             </p>
-            <Link to="/login" className="primary-button">
+            <Link to="/venues" className="primary-button">
               Book a Venue <span>→</span>
             </Link>
           </div>
@@ -94,25 +80,28 @@ function Home() {
               <h2>Find Your Perfect Venue</h2>
               <p>Explore campus spaces for your next event.</p>
             </div>
-            <Link to="/login" className="text-link">
+            <Link to="/venues" className="text-link">
               Book a venue →
             </Link>
           </div>
 
+          {venuesLoading && <p className="venue-load-state">Loading venues…</p>}
+          {venuesError && <p className="venue-load-state" role="alert">{venuesError} <Link to="/venues">Retry on the venues page</Link></p>}
+          {!venuesLoading && !venuesError && venues.length === 0 && <p className="venue-load-state">No venues are currently published.</p>}
           <div className="venue-grid">
             {venues.map((venue) => (
-              <article className="venue-card" key={venue.id}>
-                <img src={venue.image} alt={venue.name} />
+              <article className="venue-card" key={venue._id}>
+                <img src={venueImage(venue.slug)} alt={venue.name} />
 
                 <div className="venue-card-content">
                   <h3>{venue.name}</h3>
-                  <p>{venue.description}</p>
+                  <p>{venueDescription(venue)}</p>
 
                   <div className="venue-capacity">
-                    <span>●</span> {venue.capacity}
+                    <span>●</span> {venueCapacity(venue)}
                   </div>
 
-                  <Link to="/login" className="venue-button">
+                  <Link to={`/venues/${venue.slug}`} className="venue-button">
                     View Details →
                   </Link>
                 </div>

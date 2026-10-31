@@ -1,129 +1,43 @@
-
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import api from "../services/api";
+import { venueDescription, venueImage } from "../utils/venuePresentation";
 import "./VenueDetails.css";
 
-const venues = {
-  auditorium: {
-    name: "SJBIT Auditorium",
-    type: "Indoor Auditorium",
-    description:
-      "A venue intended for college seminars, conferences, cultural programmes and other approved events.",
-    image:
-      "https://images.unsplash.com/photo-1503095396549-807759245b35?auto=format&fit=crop&w=1400&q=85",
-    facilities: ["Facilities to be confirmed"],
-    capacity: "To be confirmed by SJBIT",
-    location: "To be confirmed",
-  },
-  "cricket-ground": {
-    name: "Cricket Ground",
-    type: "Sports Ground",
-    description:
-      "An outdoor venue intended for cricket matches and other approved sports activities.",
-    image:
-      "https://images.unsplash.com/photo-1531415074968-036ba1b575da?auto=format&fit=crop&w=1400&q=85",
-    facilities: ["Facilities to be confirmed"],
-    capacity: "To be confirmed by SJBIT",
-    location: "To be confirmed",
-  },
-  "basketball-court": {
-    name: "Basketball Court",
-    type: "Outdoor Sports Court",
-    description:
-      "An outdoor venue intended for basketball games, practice sessions and approved sports activities.",
-    image:
-      "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=1400&q=85",
-    facilities: ["Facilities to be confirmed"],
-    capacity: "To be confirmed by SJBIT",
-    location: "To be confirmed",
-  },
-  "cse-seminar-hall": {
-    name: "CSE Seminar Hall",
-    type: "Seminar Hall",
-    description:
-      "A venue intended for CSE department seminars, presentations, meetings and other approved academic activities.",
-    image:
-      "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1400&q=85",
-    facilities: ["Facilities to be confirmed"],
-    capacity: "To be confirmed by SJBIT",
-    location: "To be confirmed",
-  },
-};
-
 function VenueDetails() {
-  const { id } = useParams();
-  const venue = venues[id];
+  const { id: slug } = useParams();
+  const [venue, setVenue] = useState(null);
+  const [loadedSlug, setLoadedSlug] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  if (!venue) {
-    return (
-      <main className="venue-details-page">
-        <h1>Venue not found</h1>
-        <Link to="/venues">Back to Venues</Link>
-      </main>
-    );
-  }
+  useEffect(() => {
+    let active = true;
+    api.get(`/venues/${slug}`)
+      .then((response) => { if (active) { setVenue(response.data.venue); setError(""); setLoadedSlug(slug); setLoading(false); } })
+      .catch((requestError) => { if (active) { setVenue(null); setError(requestError.response?.data?.message || "Could not load venue details."); setLoadedSlug(slug); setLoading(false); } });
+    return () => { active = false; };
+  }, [slug]);
 
   return (
     <main className="venue-details-page">
-      <Link to="/venues" className="back-link">
-        ← Back to Venues
-      </Link>
-
-      <div className="venue-details-card">
-        <img
-          className="venue-details-image"
-          src={venue.image}
-          alt={venue.name}
-        />
-
+      <Link to="/venues" className="back-link">← Back to Venues</Link>
+      {(loading || loadedSlug !== slug) && <p className="venue-details-state" aria-live="polite">Loading venue details…</p>}
+      {loadedSlug === slug && error && <section className="venue-details-state" role="alert"><h1>Venue unavailable</h1><p>{error}</p><Link to="/venues">Browse venues</Link></section>}
+      {venue && loadedSlug === slug && !loading && !error && <div className="venue-details-card">
+        <img className="venue-details-image" src={venueImage(venue.slug)} alt={venue.name} />
         <div className="venue-details-content">
-          <span className="venue-details-type">{venue.type}</span>
-          <h1>{venue.name}</h1>
-          <p className="venue-overview">{venue.description}</p>
-
+          <span className="venue-details-type">{venue.type}</span><h1>{venue.name}</h1><p className="venue-overview">{venueDescription(venue)}</p>
           <div className="venue-info-grid">
-            <section className="venue-info-item">
-              <h3>Capacity</h3>
-              <p>{venue.capacity}</p>
-            </section>
-
-            <section className="venue-info-item">
-              <h3>Location</h3>
-              <p>{venue.location}</p>
-            </section>
-
-            <section className="venue-info-item">
-              <h3>Facilities</h3>
-              <ul>
-                {venue.facilities.map((facility) => (
-                  <li key={facility}>{facility}</li>
-                ))}
-              </ul>
-            </section>
+            <section className="venue-info-item"><h3>Capacity</h3><p>{venue.capacity || "To be confirmed by SJBIT"}</p></section>
+            <section className="venue-info-item"><h3>Location</h3><p>{venue.location || "To be confirmed by SJBIT"}</p></section>
+            <section className="venue-info-item"><h3>Facilities</h3>{venue.facilities?.length ? <ul>{venue.facilities.map((facility) => <li key={facility}>{facility}</li>)}</ul> : <p>To be confirmed by SJBIT</p>}</section>
+            <section className="venue-info-item venue-slots-item"><h3>Configured time slots</h3>{venue.timeSlots?.length ? <ul>{venue.timeSlots.map((slot) => <li key={slot.key}>{slot.label}</li>)}</ul> : <p>Schedule has not been configured yet.</p>}</section>
           </div>
-
-          <div className="venue-guidelines">
-            <h2>Before You Book</h2>
-            <p>
-              Check the venue's availability and follow the college's
-              approved booking rules. A booking request is not confirmed
-              until the required approval has been granted.
-            </p>
-          </div>
-
-          <div className="venue-details-actions">
-            <Link to="/venues" className="secondary-button">
-              Back to Venues
-            </Link>
-
-            <Link
-              to={`/venues/${id}/availability`}
-              className="details-primary-button"
-            >
-              Check Availability &amp; Book →
-            </Link>
-          </div>
+          <div className="venue-guidelines"><h2>Before You Book</h2><p>Check live availability and submit a request with complete event details. A request remains pending until an authorized approver decides it. Read the <Link to="/guidelines">booking guidelines</Link> before submitting.</p></div>
+          <div className="venue-details-actions"><Link to="/venues" className="secondary-button">Back to Venues</Link><Link to={`/venues/${venue.slug}/availability`} className="details-primary-button">Check Availability &amp; Book →</Link></div>
         </div>
-      </div>
+      </div>}
     </main>
   );
 }

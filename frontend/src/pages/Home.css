@@ -91,6 +91,9 @@
 .header-login {
   padding: 12px 23px;
   flex-shrink: 0;
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 .hero {

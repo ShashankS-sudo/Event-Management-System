@@ -1,0 +1,18 @@
+.guidelines-page { min-height: 100vh; padding: 42px 5%; background: #f8fafc; color: #142746; font-family: Arial, sans-serif; }
+.guidelines-header, .guidelines-list, .guidelines-note, .guidelines-actions { max-width: 850px; margin-left: auto; margin-right: auto; }
+.guidelines-header { position: relative; padding: 22px 0 25px; text-align: center; }
+.guidelines-back { position: absolute; top: 0; left: 0; color: #1554b5; font-size: 12px; font-weight: 700; text-decoration: none; }
+.guidelines-eyebrow { color: #1554b5; font-size: 10px; font-weight: 800; letter-spacing: 1.5px; }
+.guidelines-header h1 { margin: 9px 0; font-size: clamp(28px, 4vw, 38px); }
+.guidelines-header p { margin: 0; color: #64748b; font-size: 13px; }
+.guidelines-list { display: grid; gap: 10px; }
+.guideline-card { display: flex; gap: 17px; padding: 19px; border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; }
+.guideline-number { display: grid; width: 38px; height: 38px; flex: 0 0 38px; place-items: center; border-radius: 50%; background: #eff6ff; color: #1554b5; font-size: 12px; font-weight: 800; }
+.guideline-card h2 { margin: 2px 0 7px; font-size: 15px; }
+.guideline-card p, .guidelines-note p { margin: 0; color: #596a80; font-size: 12px; line-height: 1.75; }
+.guidelines-note { margin-top: 15px; padding: 16px 18px; border-left: 4px solid #f59e0b; border-radius: 6px; background: #fffbeb; }
+.guidelines-note strong { display: block; margin-bottom: 5px; color: #854d0e; font-size: 12px; }
+.guidelines-actions { display: flex; justify-content: center; gap: 10px; margin-top: 22px; }
+.guidelines-primary, .guidelines-secondary { padding: 11px 16px; border: 1px solid #1554b5; border-radius: 6px; color: #1554b5; font-size: 12px; font-weight: 700; text-decoration: none; }
+.guidelines-primary { background: #1554b5; color: #fff; }
+@media (max-width: 600px) { .guidelines-page { padding: 30px 4%; } .guidelines-header { padding-top: 42px; } .guideline-card { padding: 15px; gap: 12px; } .guidelines-actions { flex-direction: column; } .guidelines-actions a { text-align: center; } }
