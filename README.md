@@ -1,25 +1,238 @@
 # SJBIT College Venue Booking and Management System
 
-React/Vite frontend and Express/MongoDB backend for browsing campus venues, checking availability, submitting bookings, and administering approval workflows.
+A web application for browsing SJBIT campus venues, checking availability, requesting bookings, and managing approvals. It includes a React frontend, an Express and MongoDB API, customer booking workflows, and role-based administration.
+
+## Features
+
+### Customers
+
+- Browse active venues and view venue details.
+- Check date-specific availability.
+- Create an account and submit booking requests with event and organization contact details.
+- Track booking status and decision history.
+- Resubmit rejected requests.
+- Request cancellation of an approved booking. Management reviews cancellation requests.
+- View and manage in-app notifications.
+
+### Administrators and approvers
+
+- Review booking requests and approve or reject them.
+- View an administrative availability calendar.
+- Create manual reservations and block venue time.
+- Manage venue details, operating hours, and time slots (ADMIN only).
+- Review customer cancellation requests.
+- CSE HOD approval access is restricted to the CSE Seminar Hall.
+
+### Booking safeguards
+
+- Availability is checked against configured venue slots, approved reservations, and active blocks.
+- Approval and reservation changes use MongoDB transactions.
+- Reservations include a one-hour cleanup buffer.
+- Conflicting pending requests are rejected when an overlapping reservation or block is created.
+- Booking and cancellation messages are queued in a MongoDB outbox. SMTP delivery is optional.
+
+## Technology
+
+- **Frontend:** React 19, Vite, React Router, Axios
+- **Backend:** Node.js, Express 5, Mongoose
+- **Database:** MongoDB
+- **Authentication:** bcrypt password hashing and JWTs stored in HTTP-only cookies
+
+## Project structure
+
+```text
+.
+├── backend/
+│   ├── scripts/       # Admin, venue seed, and database verification scripts
+│   ├── src/
+│   │   ├── config/
+│   │   ├── controllers/
+│   │   ├── middleware/
+│   │   ├── models/
+│   │   ├── routes/
+│   │   └── services/
+│   └── test/
+├── frontend/
+│   └── src/
+│       ├── components/
+│       ├── context/
+│       ├── pages/
+│       └── services/
+└── IMPLEMENTATION_REPORT.md
+```
+
+## Requirements
+
+- Node.js and npm
+- A MongoDB deployment that supports transactions, such as a MongoDB replica set or Atlas cluster
+
+Install dependencies in both application folders:
+
+```bash
+cd backend
+npm install
+
+cd ../frontend
+npm install
+```
+
+## Configuration
+
+### Backend
+
+Copy `backend/.env.example` to `backend/.env` and fill in the required values:
+
+```dotenv
+MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>/<database>
+JWT_SECRET=<random-secret-at-least-32-characters>
+PORT=5000
+FRONTEND_ORIGINS=http://localhost:5173
+```
+
+`MONGODB_URI` and a `JWT_SECRET` of at least 32 characters are required. Keep `backend/.env` private and do not commit credentials.
+
+Optional backend settings:
+
+| Variable | Purpose |
+| --- | --- |
+| `FRONTEND_ORIGINS` | Comma-separated frontend origins allowed by credentialed CORS. Use the deployed frontend origin in production. |
+| `FRONTEND_ORIGIN` | Alternative single-origin CORS setting. |
+| `TRUST_PROXY` | Number of trusted proxy hops. Set only when running behind a trusted reverse proxy. Defaults to `0`. |
+| `MANAGEMENT_NOTIFICATION_EMAIL` | Recipient for management email notifications. |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE` | SMTP server connection settings. |
+| `SMTP_USER`, `SMTP_PASSWORD` | SMTP credentials. Keep the password in the ignored `.env` file. |
+| `SMTP_FROM` | Optional sender name and address. |
+| `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_ROLE`, `ADMIN_DEPARTMENT`, `ADMIN_PASSWORD` | One-time values used by the local initial administrator provisioning script. |
+
+The backend validates required configuration at startup. In production, set `FRONTEND_ORIGINS` to valid `http(s)` origins without paths. Configure secure secrets and proxy settings for your deployment.
+
+### Frontend
+
+The frontend defaults to the local API at `http://localhost:5000/api`. If the API is hosted elsewhere, set `VITE_API_URL` before building or starting Vite:
+
+```dotenv
+VITE_API_URL=https://api.example.com/api
+```
+
+Vite exposes `VITE_` variables to the browser bundle. Do not put secrets in frontend environment variables.
 
 ## Run locally
 
-1. Copy `backend/.env.example` to `backend/.env`, then set `MONGODB_URI`, a `JWT_SECRET` of at least 32 characters, and `FRONTEND_ORIGINS`. Do not commit `.env`. For a deployed frontend, set its origin; multiple origins can be comma-separated. Set `TRUST_PROXY` to the exact proxy hop count only when deployed behind a trusted reverse proxy.
-2. Start the API from `backend/` with `npm run dev` (port 5000 by default).
-3. Start the frontend from `frontend/` with `npm run dev` (Vite uses port 5173). Set `VITE_API_URL` at build time if the API is not at `http://localhost:5000/api`.
+Open two terminals from the project root.
 
-Public registration creates customer accounts only. The named demo approver can be provisioned as Principal with `ADMIN_NAME=Shashank S`, `ADMIN_EMAIL=1jb24cs172gdg@gmail.com`, `ADMIN_ROLE=PRINCIPAL`, and `ADMIN_DEPARTMENT=CSE`. Set a unique `ADMIN_PASSWORD` of at least 12 characters in the local environment, then run `npm run admin:create` from `backend/`. The script refuses to modify an existing account and never prints the password. Clear temporary credential values after provisioning. Do not add credentials to source control or chat.
+**Terminal 1 — backend:**
 
-The four confirmed venue records can be updated with `npm run venues:seed` from `backend/`. It applies the confirmed names, capacities, SJBIT Campus location, empty additional-facilities lists, daily opening hours, and continuous hourly booking ranges. It refuses to replace a schedule if pending or approved bookings would reference removed slots.
+```bash
+cd backend
+npm run dev
+```
 
-Booking and cancellation emails are written to the MongoDB outbox as part of the booking transaction and sent when SMTP is configured. Set `MANAGEMENT_NOTIFICATION_EMAIL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, and optionally `SMTP_FROM` in the ignored `backend/.env`. The default recipient is the management inbox supplied for the project. For Gmail, use an app password stored only in `.env`; never commit it.
+The API listens on port `5000` by default. Check it at [http://localhost:5000/api/health](http://localhost:5000/api/health).
 
-## Verification
+**Terminal 2 — frontend:**
 
-- Backend: `cd backend` then `npm test`.
-- Atlas transaction capability (read-only): `cd backend` then `npm run db:check-transactions`. This check reads one active venue inside a transaction and does not modify records.
-- Concurrent booking writes: `cd backend` then `npm run db:check-concurrency`. It creates a uniquely named temporary database on the configured cluster, races approval against another approval, a manual reservation, and an administrative block, then drops that database afterward. Use a database credential permitted to create/drop databases.
-- Cancellation transactions: `cd backend` then `npm run db:check-cancellations`. It uses and drops a separate temporary database to verify manager-reviewed cancellation, reservation release after approval, and concurrent request/decision handling.
-- Frontend: `cd frontend` then `npm run lint` and `npm run build`.
+```bash
+cd frontend
+npm run dev
+```
 
-See [IMPLEMENTATION_REPORT.md](IMPLEMENTATION_REPORT.md) for current scope, verification results, and remaining release work. Venue facts and institutional policy details must be confirmed with SJBIT before production use.
+Vite serves the app at [http://localhost:5173](http://localhost:5173).
+
+## Initial data and administrator setup
+
+### Seed venue records
+
+To apply the confirmed venue names, capacities, campus location, opening hours, and hourly booking ranges to the configured database:
+
+```bash
+cd backend
+npm run venues:seed
+```
+
+The command checks whether pending or approved bookings depend on schedule slots before removing those slots. Review the target `MONGODB_URI` before running it.
+
+### Create an initial administrator or approver
+
+Public registration creates customer accounts only. To provision an initial privileged account, set the `ADMIN_*` variables in `backend/.env`, including a unique password of at least 12 characters, then run:
+
+```bash
+cd backend
+npm run admin:create
+```
+
+The script refuses to modify an existing account and does not print the password. Remove temporary credential values from the environment after provisioning. Never commit or share the password.
+
+## API overview
+
+All API routes are under `/api`.
+
+| Area | Routes |
+| --- | --- |
+| Health | `GET /health` |
+| Authentication | `POST /auth/register`, `POST /auth/login`, `GET /auth/me`, `POST /auth/logout` |
+| Venues | `GET /venues`, `GET /venues/:slug`, `GET /venues/:slug/availability?date=YYYY-MM-DD` |
+| Customer bookings | `POST /bookings`, `GET /bookings`, `GET /bookings/:id`, `PATCH /bookings/:id/cancel`, `POST /bookings/:id/resubmit` |
+| Cancellation requests | `POST /bookings/:id/cancellation-exception`, `PATCH /bookings/:id/cancellation-exception/decision` |
+| Booking decisions | `PATCH /bookings/:id/decision` |
+| Notifications | `GET /notifications`, `PATCH /notifications/:id/read`, `PATCH /notifications/read-all` |
+| Administration | `GET /admin/bookings`, plus ADMIN routes for blocked slots, manual bookings, and venue management |
+
+Most booking, notification, and administration routes require authentication. Role restrictions are enforced by the API as well as the frontend.
+
+## Development checks
+
+Run the backend unit tests:
+
+```bash
+cd backend
+npm test
+```
+
+Lint and build the frontend:
+
+```bash
+cd frontend
+npm run lint
+npm run build
+```
+
+The frontend production output is written to `frontend/dist/`. To preview a production build locally:
+
+```bash
+cd frontend
+npm run preview
+```
+
+## Database transaction checks
+
+These scripts use temporary databases for their write scenarios and drop them afterward. Use a MongoDB account with permission to create and drop databases. Confirm the configured connection string before running them.
+
+```bash
+cd backend
+npm run db:check-transactions
+npm run db:check-concurrency
+npm run db:check-cancellations
+```
+
+- `db:check-transactions` checks transaction capability using a read-only transaction.
+- `db:check-concurrency` exercises competing booking, manual reservation, and block operations.
+- `db:check-cancellations` checks cancellation transaction scenarios.
+
+## Booking rules and project data
+
+The configured venue schedules use Asia/Kolkata campus time. The current setup includes the Auditorium, Basketball Ground, Cricket Ground, and CSE Seminar Hall. The application enforces a two-day minimum booking notice, a four-day cancellation request cutoff, and a one-hour cleanup buffer.
+
+Confirm venue details and institutional policies with SJBIT before production use. Capacities, opening hours, facilities, approval responsibilities, cancellation rules, and access requirements should be treated as subject to institutional confirmation.
+
+## Security and deployment notes
+
+- Use HTTPS in production so authentication cookies are protected.
+- Keep MongoDB credentials, JWT secrets, and SMTP credentials out of source control and frontend configuration.
+- Set CORS origins to the actual deployed frontend origins.
+- Set `TRUST_PROXY` only to the correct trusted proxy hop count when deployed behind a proxy.
+- Authentication throttling currently uses an in-memory rate limiter. Multi-instance deployments should use a shared rate-limit store.
+- Review production cookie, CSRF, secret management, and deployment settings before launch.
+
+## Further documentation
+
+See [IMPLEMENTATION_REPORT.md](IMPLEMENTATION_REPORT.md) for the implementation status, verification history, and remaining release work.
