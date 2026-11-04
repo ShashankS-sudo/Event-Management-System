@@ -51,6 +51,10 @@ async function register(req, res) {
       });
     }
 
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({ success: false, message: "Authentication configuration error" });
+    }
+
     // Check for an existing account
     const existingUser = await User.findOne({
       email: normalizedEmail,
@@ -74,6 +78,19 @@ async function register(req, res) {
       role: "CUSTOMER",
     });
 
+    const token = jwt.sign(
+      { userId: user._id.toString(), role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000,
+      path: "/",
+    });
+
     return res.status(201).json({
       success: true,
       message: "Registration successful",
@@ -82,6 +99,7 @@ async function register(req, res) {
         name: user.name,
         email: user.email,
         role: user.role,
+        department: user.department,
       },
     });
   } catch (error) {

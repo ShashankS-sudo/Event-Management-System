@@ -94,6 +94,34 @@
   padding-left: 18px;
 }
 
+.venue-about {
+  margin: 0 0 22px;
+  padding: 22px 24px;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  background: #f8fafc;
+}
+
+.venue-about > span {
+  color: #a77819;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+}
+
+.venue-about h2 {
+  margin: 8px 0;
+  font-size: 19px;
+}
+
+.venue-about p {
+  max-width: 850px;
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
 .venue-guidelines {
   padding: 20px;
   border-left: 4px solid #c99c3e;

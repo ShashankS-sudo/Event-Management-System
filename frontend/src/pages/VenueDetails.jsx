@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import api from "../services/api";
-import { venueDescription, venueImage } from "../utils/venuePresentation";
+import { venueAbout, venueDescription, venueImage } from "../utils/venuePresentation";
 import SiteHeader from "../components/SiteHeader";
 import "./VenueDetails.css";
 
@@ -33,8 +33,8 @@ function VenueDetails() {
             <section className="venue-info-item"><h3>Capacity</h3><p>{venue.capacity || "To be confirmed by SJBIT"}</p></section>
             <section className="venue-info-item"><h3>Location</h3><p>{venue.location || "To be confirmed by SJBIT"}</p></section>
             <section className="venue-info-item"><h3>Facilities</h3>{venue.facilities?.length ? <ul>{venue.facilities.map((facility) => <li key={facility}>{facility}</li>)}</ul> : <p>Venue space only; no additional facilities are included.</p>}</section>
-            <section className="venue-info-item venue-slots-item"><h3>Configured time slots</h3>{venue.timeSlots?.length ? <ul>{venue.timeSlots.map((slot) => <li key={slot.key}>{slot.label}</li>)}</ul> : <p>Schedule has not been configured yet.</p>}</section>
           </div>
+          <section className="venue-about"><span>VENUE OVERVIEW</span><h2>About the {venue.name}</h2><p>{venueAbout(venue)}</p></section>
           <div className="venue-guidelines"><h2>Before You Book</h2><p>Check live availability and submit a request with complete event details. A request remains pending until an authorized approver decides it. Read the <Link to="/guidelines">booking guidelines</Link> before submitting.</p></div>
           <div className="venue-details-actions"><Link to="/venues" className="secondary-button">Back to Venues</Link><Link to={`/venues/${venue.slug}/availability`} className="details-primary-button">Check Availability &amp; Book →</Link></div>
         </div>

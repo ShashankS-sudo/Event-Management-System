@@ -31,7 +31,7 @@ The supplied screenshots are visual/workflow references. Venue names, capacities
 - `authorizeRoles` provides a basic allowed-role middleware.
 - `/api/auth/me` returns the authenticated user's public profile; `/api/auth/logout` clears the cookie.
 - The authenticated profile includes department for HOD access checks; login and profile responses expose the public role/profile fields.
-- Registration and login share a 10-attempt/15-minute in-memory rate limiter.
+- Registration and login share a 10-attempt/15-minute in-memory rate limiter. Successful registration creates the authentication cookie so the customer lands directly on the public home page signed in.
 - Initial ADMIN provisioning is available only through `backend/scripts/createAdmin.js` (`npm run admin:create`). The script hashes a minimum 12-character password, refuses to alter an existing account, and public registration cannot assign privileged roles.
 - `/api/auth/admin-test` is a temporary HOD/Principal authorization test route.
 - Venue catalog supports public `GET /api/venues` and `GET /api/venues/:slug`; only active venues are returned.
@@ -50,8 +50,8 @@ The supplied screenshots are visual/workflow references. Venue names, capacities
 
 ### Frontend
 
-- React Router routes the home, login, registration, venue list, venue detail, availability, About, and Contact pages.
-- Home, venue list, and venue details now load active venue names and configured data from the backend; temporary presentation images are selected by venue slug. Missing capacities, locations, facilities, or descriptions are shown as unconfirmed rather than invented.
+- React Router routes the home, login, registration, venue list, venue detail, availability, About, and Contact pages. Public navigation gives ADMIN, PRINCIPAL, and CSE HOD users a shortcut back to the administration dashboard.
+- Home, venue list, and venue details now load active venue names and configured data from the backend; temporary presentation images are selected by venue slug. The Seminar Hall detail page shows a general overview instead of a long configured-slot list; availability remains on the booking availability page.
 - Added a guidelines page describing the implemented request, approval, tracking, cancellation, and exception workflows. It explicitly states that official SJBIT policy details need confirmation.
 - Added a shared frontend session context initialized from `/api/auth/me`, sign-out actions on public/admin navigation, role-aware post-login routing, and an email-only login label matching the backend.
 - Login and registration call the auth API through an Axios client with `withCredentials: true`; the API URL can be set through `VITE_API_URL` and defaults to `http://localhost:5000/api`.
@@ -328,7 +328,7 @@ The admin dashboard, approval queue, blocked-slot management, manual reservation
 - Set all four venue locations to “SJBIT Campus” and their facilities lists to empty, per the user's clarification.
 - Added required per-request organization contact name, phone, email, and organization name. Admin approvers can review those contact details from the request.
 - Updated the active Atlas venue records. The seed command checked for pending/approved bookings that would use removed slot keys before applying schedule changes; none prevented the update. Verification returned all four names/capacities/hours and 78 hourly ranges for each long-day venue and 36 for Seminar Hall.
-- Verification: all 55 backend unit tests pass; frontend ESLint and Vite production build pass.
+- Verification: all 56 backend unit tests pass; frontend ESLint and Vite production build pass.
 
 ### Component 30 — Management email outbox and demo approver provisioning (implemented; SMTP password pending)
 
@@ -336,4 +336,11 @@ The admin dashboard, approval queue, blocked-slot management, manual reservation
 - Added an SMTP delivery worker with retry/backoff and stale-send recovery. It activates when `SMTP_HOST`, `SMTP_USER`, and `SMTP_PASSWORD` are set. The repository includes a secret-free `.env.example`; no SMTP password was written to the workspace.
 - Extended the safe initial account provisioning script to support the supplied demo Principal identity (Shashank S, Principal, CSE, `1jb24cs172gdg@gmail.com`). The user-authorized local demo account was provisioned with the temporary password they supplied; provisioning values were removed from `.env` afterward. Other approver accounts remain unconfigured as requested.
 - Configured Gmail SMTP host, port, sender, and management recipient in the ignored local `.env`. The App Password is still blank, so the outbox queues messages until it is added.
-- Verification: all 55 backend unit tests pass, including cancellation queuing. The updated Atlas manager-reviewed cancellation integration check is available but has not yet been rerun. Frontend lint and production build pass.
+- Verification: all 56 backend unit tests pass, including cancellation queuing. The updated Atlas manager-reviewed cancellation integration check is available but has not yet been rerun. Frontend lint and production build pass.
+
+### Component 31 — Public navigation and registration flow (complete)
+
+- Replaced the Seminar Hall configured-slot list on its details page with a concise overview of its general academic and event use.
+- Added a role-aware Admin Dashboard link to the public header for ADMIN, PRINCIPAL, and CSE HOD users.
+- Registration now sets an HTTP-only auth cookie and signs the new customer into the public home page immediately.
+- Verification: backend tests cover the registration session cookie; frontend ESLint and production build pass.

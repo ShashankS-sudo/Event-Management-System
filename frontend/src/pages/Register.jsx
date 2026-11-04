@@ -1,11 +1,14 @@
 
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
-import { Link } from "react-router-dom";
+import useAuth from "../context/useAuth";
 import SiteHeader from "../components/SiteHeader";
 import "./Register.css";
 
 function Register() {
+  const navigate = useNavigate();
+  const { setUser } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -29,14 +32,8 @@ function Register() {
 
     try {
       const response = await api.post("/auth/register", formData);
-
-      setMessage(response.data.message);
-
-      setFormData({
-        name: "",
-        email: "",
-        password: "",
-      });
+      setUser(response.data.user);
+      navigate("/", { replace: true });
     } catch (error) {
       setMessage(
         error.response?.data?.message ||

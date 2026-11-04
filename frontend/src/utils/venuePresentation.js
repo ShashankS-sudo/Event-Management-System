@@ -6,6 +6,13 @@ const venueImages = {
   "cse-seminar-hall": "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=80",
 };
 
+const venueAboutText = {
+  auditorium: "The Auditorium is a large indoor gathering space for academic talks, conferences, cultural programs, ceremonies and other campus events. Its capacity makes it suitable for programs that bring together a broad college audience.",
+  "basketball-ground": "The Basketball Ground is an outdoor sports space for basketball practice, friendly matches and interdepartmental competitions. Organizers can check live availability and request a suitable time for their activity.",
+  "cricket-ground": "The Cricket Ground is an open campus sports venue for cricket practice, team matches and larger sporting events. Organizers can check live availability and request a suitable time for their activity.",
+  "cse-seminar-hall": "The Seminar Hall is an indoor space for academic talks, workshops, training sessions, presentations and department meetings. It can accommodate up to 100 attendees, making it suitable for focused sessions and smaller gatherings.",
+};
+
 export function venueImage(slug) {
   return venueImages[slug] || "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=900&q=80";
 }
@@ -19,6 +26,10 @@ export function venueDescription(venue) {
     "cse-seminar-hall": "A departmental space for seminars, talks and academic meetings. Confirm seating, equipment and access for your event with the responsible department.",
   };
   return descriptions[venue.slug] || "Explore this campus space and check its live availability. Details are published here as the college confirms them.";
+}
+
+export function venueAbout(venue) {
+  return venueAboutText[venue.slug] || venueDescription(venue);
 }
 
 export function venueCapacity(venue) {
