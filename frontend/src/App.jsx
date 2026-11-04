@@ -22,6 +22,9 @@ import AdminManualBookings from "./pages/AdminManualBookings";
 import Notifications from "./pages/Notifications";
 import Guidelines from "./pages/Guidelines";
 import AdminVenues from "./pages/AdminVenues";
+import AdminAvailability from "./pages/AdminAvailability";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
 
 function App() {
   return (
@@ -40,6 +43,8 @@ function App() {
         <Route path="/bookings/:id" element={<BookingDetails />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/guidelines" element={<Guidelines />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<AdminDashboard />} />
@@ -47,6 +52,7 @@ function App() {
           <Route path="blocked-slots" element={<AdminBlockedSlots />} />
           <Route path="manual-bookings" element={<AdminManualBookings />} />
           <Route path="venues" element={<AdminVenues />} />
+          <Route path="availability" element={<AdminAvailability />} />
         </Route>
         <Route path="/venues/:id" element={<VenueDetails />} />
         <Route path="/venues" element={<Venues />} />

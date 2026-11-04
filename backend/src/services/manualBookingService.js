@@ -120,7 +120,7 @@ async function createManualBooking(admin, input = {}) {
             $set: { status: "REJECTED", rejectionReason: reason, decidedBy: admin._id, decidedAt },
             $push: { history: { status: "REJECTED", actor: admin._id, reason, changedAt: decidedAt } },
           },
-          { new: true, runValidators: true, session }
+          { returnDocument: "after", runValidators: true, session }
         );
         if (rejected) {
           autoRejectedIds.push(rejected._id);
@@ -132,7 +132,7 @@ async function createManualBooking(admin, input = {}) {
           });
         }
       }
-      if (notifications.length) await Notification.create(notifications, { session });
+      if (notifications.length) await Notification.create(notifications, { session, ordered: true });
       result = { booking: manualBooking, autoRejectedIds };
     });
     return result;

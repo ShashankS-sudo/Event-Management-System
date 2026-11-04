@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import useAuth from "../context/useAuth";
+import SiteHeader from "../components/SiteHeader";
 import "./Login.css";
 
 function Login() {
@@ -42,7 +43,7 @@ function Login() {
   }
 
   return (
-    <main className="login-page">
+    <><SiteHeader /><main className="login-page">
       <section className="login-card">
         <div className="college-logo">SJBIT</div>
 
@@ -114,7 +115,7 @@ function Login() {
           <Link to="/register">Sign Up</Link>
         </p>
       </section>
-    </main>
+    </main></>
   );
 }
 

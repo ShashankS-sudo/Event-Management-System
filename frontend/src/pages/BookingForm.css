@@ -6,6 +6,8 @@
   font-family: Arial, sans-serif;
 }
 
+.booking-contact-fields{margin:20px 0;padding:16px;border:1px solid #dce4ed;border-radius:8px}.booking-contact-fields legend{padding:0 7px;color:#a57a20;font-size:12px;font-weight:800}.booking-contact-fields .booking-field-row{margin-top:8px}
+
 .booking-back {
   display: inline-block;
   margin-bottom: 18px;

@@ -2,7 +2,7 @@
 .venue-details-page {
   min-height: 100vh;
   padding: 36px 5%;
-  background: #f8fafc;
+  background: #f3f6fa;
   color: #142746;
   font-family: Arial, sans-serif;
 }
@@ -96,9 +96,9 @@
 
 .venue-guidelines {
   padding: 20px;
-  border-left: 4px solid #1554b5;
+  border-left: 4px solid #c99c3e;
   border-radius: 5px;
-  background: #eff6ff;
+  background: #f7f3e9;
 }
 
 .venue-guidelines h2 {
@@ -127,7 +127,7 @@
   align-items: center;
   justify-content: center;
   padding: 12px 17px;
-  border: 1px solid #1554b5;
+  border: 1px solid #164e98;
   border-radius: 7px;
   font-size: 13px;
   font-weight: 700;
@@ -135,16 +135,16 @@
 }
 
 .secondary-button {
-  color: #1554b5;
+  color: #164e98;
 }
 
 .details-primary-button {
-  background: #1554b5;
+  background: #123e80;
   color: #fff;
 }
 
 .details-primary-button:hover {
-  background: #103f8c;
+  background: #0b2e61;
 }
 
 @media (max-width: 650px) {

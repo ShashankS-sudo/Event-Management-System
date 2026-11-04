@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const Booking = require("../src/models/Booking");
 const Venue = require("../src/models/Venue");
 const Notification = require("../src/models/Notification");
+const EmailOutbox = require("../src/models/EmailOutbox");
 const availabilityService = require("../src/services/availabilityService");
 const { submitBookingRequest } = require("../src/services/bookingService");
 
@@ -12,6 +13,7 @@ const input = {
   venueSlug: "sample-venue",
   eventTitle: "Engineering Seminar",
   department: "Computer Science",
+  contactDetails: { name: "Test Contact", phone: "+91 9876543210", email: "contact@example.org", organization: "Example Organization" },
   eventDate: "2099-12-15",
   slotKey: "morning",
   expectedAttendees: 80,
@@ -26,6 +28,7 @@ function withMocks(t, { availabilityStatus = "AVAILABLE", capacity = 100 } = {})
     venueUpdateOne: Venue.updateOne,
     create: Booking.create,
     notificationCreate: Notification.create,
+    outboxCreate: EmailOutbox.create,
     getAvailability: availabilityService.getVenueAvailability,
   };
   Venue.findOne = () => ({
@@ -47,6 +50,7 @@ function withMocks(t, { availabilityStatus = "AVAILABLE", capacity = 100 } = {})
   Booking.create = async (documents) => documents.map((data) => ({ _id: new mongoose.Types.ObjectId(), ...data }));
   const notifications = [];
   Notification.create = async (documents) => { notifications.push(...documents); return documents; };
+  EmailOutbox.create = async (documents) => documents;
   mongoose.startSession = async () => ({
     withTransaction: async (callback) => callback(),
     endSession: async () => {},
@@ -57,6 +61,7 @@ function withMocks(t, { availabilityStatus = "AVAILABLE", capacity = 100 } = {})
     Venue.updateOne = originals.venueUpdateOne;
     Booking.create = originals.create;
     Notification.create = originals.notificationCreate;
+    EmailOutbox.create = originals.outboxCreate;
     availabilityService.getVenueAvailability = originals.getAvailability;
   });
   return { notifications };

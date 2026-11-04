@@ -1,6 +1,9 @@
 
 import { useState } from "react";
 import api from "../services/api";
+import { Link } from "react-router-dom";
+import SiteHeader from "../components/SiteHeader";
+import "./Register.css";
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -45,9 +48,7 @@ function Register() {
   }
 
   return (
-    <div>
-      <h1>Create an Account</h1>
-
+    <><SiteHeader /><main className="register-page"><section className="register-card"><span className="register-kicker">SJBIT VENUE BOOKING</span><h1>Create your account</h1><p>Register to submit venue requests and keep track of your campus events.</p>
       <form onSubmit={handleSubmit}>
         <div>
           <label htmlFor="name">Full Name</label>
@@ -92,8 +93,9 @@ function Register() {
         </button>
       </form>
 
-      {message && <p role="status">{message}</p>}
-    </div>
+      {message && <p className="register-message" role="status">{message}</p>}
+      <p className="register-login">Already registered? <Link to="/login">Sign in</Link></p>
+    </section></main></>
   );
 }
 

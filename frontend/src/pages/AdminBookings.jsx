@@ -96,8 +96,8 @@ function AdminBookings() {
             <h2 id="admin-modal-title">{selected.eventTitle}</h2>
             <div className="admin-modal-details">
               <p><strong>Venue</strong><span>{selected.venue?.name}</span></p>
-              <p><strong>Requested by</strong><span>{selected.requester?.name} · {selected.requester?.email}</span></p>
-              <p><strong>Department / organization</strong><span>{selected.department}</span></p>
+              <p><strong>Organization</strong><span>{selected.contactDetails?.organization || selected.department}</span></p>
+              <p><strong>Contact person</strong><span>{selected.contactDetails ? `${selected.contactDetails.name} · ${selected.contactDetails.phone} · ${selected.contactDetails.email}` : `${selected.requester?.name || "Customer"} · ${selected.requester?.email || ""}`}</span></p>
               <p><strong>Date and time</strong><span>{new Date(selected.eventDate).toLocaleDateString("en-IN", { timeZone: "UTC", dateStyle: "long" })} · {chosenSlot?.label || selected.slotKey}</span></p>
               <p><strong>Expected attendees</strong><span>{selected.expectedAttendees}</span></p>
               <p><strong>Facilities</strong><span>{selected.facilitiesRequested?.join(", ") || "None"}</span></p>

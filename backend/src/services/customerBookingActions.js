@@ -3,10 +3,12 @@ const Booking = require("../models/Booking");
 const Venue = require("../models/Venue");
 const Reservation = require("../models/Reservation");
 const Notification = require("../models/Notification");
+const EmailOutbox = require("../models/EmailOutbox");
 const User = require("../models/User");
 const { campusMinuteToUtc } = require("./availabilityService");
 const bookingService = require("./bookingService");
 const { CANCELLATION_DEADLINE_DAYS } = require("../config/bookingPolicy");
+const { bookingEmail } = require("./emailOutboxService");
 
 function fail(status, message) {
   const error = new Error(message);
@@ -47,7 +49,7 @@ async function cancelCustomerBooking(user, bookingId) {
           $set: { status: "CANCELLED", decidedBy: user._id, decidedAt },
           $push: { history: { status: "CANCELLED", actor: user._id, reason: "Cancelled by customer", changedAt: decidedAt } },
         },
-        { new: true, runValidators: true, session }
+        { returnDocument: "after", runValidators: true, session }
       );
       if (!updatedBooking) fail(409, "This booking was changed before cancellation completed");
 
@@ -62,6 +64,7 @@ async function cancelCustomerBooking(user, bookingId) {
         message: `Your booking request for ${venue.name} was cancelled.`,
         relatedBooking: booking._id,
       }], { session });
+      await EmailOutbox.create([bookingEmail(updatedBooking, venue, "CANCELLATION_REQUESTED")], { session, ordered: true });
     });
     return updatedBooking;
   } finally {
@@ -84,7 +87,7 @@ async function resubmitRejectedBooking(user, bookingId, input = {}) {
     : original.venue?.slug;
   const booking = await bookingService.submitBookingRequest(
     user,
-    { ...input, venueSlug },
+    { ...input, venueSlug, contactDetails: input.contactDetails || original.contactDetails },
     { resubmittedFrom: original._id, notificationType: "BOOKING_RESUBMITTED" }
   );
   return booking;
@@ -111,13 +114,13 @@ async function requestCancellationException(user, bookingId, reason) {
       const requestedAt = new Date();
       updated = await Booking.findOneAndUpdate({ _id: booking._id, "cancellationException.status": { $in: ["NONE", null] } }, {
         $set: { cancellationException: { status: "PENDING", reason: reason.trim(), requestedAt } },
-      }, { new: true, runValidators: true, session });
+      }, { returnDocument: "after", runValidators: true, session });
       if (!updated) fail(409, "An exception request was submitted concurrently");
-      const candidates = await User.find({ isActive: true, role: { $in: ["ADMIN", "PRINCIPAL", "HOD"] } }).select("_id role department").session(session).lean();
-      const approvers = candidates.filter((approver) => ["ADMIN", "PRINCIPAL"].includes(approver.role) || (approver.role === "HOD" && ["CSE", "COMPUTER SCIENCE AND ENGINEERING", "COMPUTER SCIENCE & ENGINEERING"].includes((approver.department || "").trim().toUpperCase())));
+      const approvers = await User.find({ isActive: true, role: { $in: ["ADMIN", "PRINCIPAL"] } }).select("_id role").session(session).lean();
       const notifications = approvers.map((approver) => ({ recipient: approver._id, type: "CANCELLATION_EXCEPTION", message: `A customer requested a late cancellation for ${venue.name}. Review the booking.`, relatedBooking: booking._id }));
       notifications.push({ recipient: user._id, type: "CANCELLATION_EXCEPTION", message: `Your late cancellation request for ${venue.name} was sent for review.`, relatedBooking: booking._id });
-      await Notification.create(notifications, { session });
+      await Notification.create(notifications, { session, ordered: true });
+      await EmailOutbox.create([bookingEmail(updated, venue, "CANCELLATION_REQUESTED")], { session, ordered: true });
     });
     return updated;
   } finally { await session.endSession(); }
@@ -137,7 +140,7 @@ async function decideCancellationException(approver, bookingId, decision, decisi
       const lock = await Venue.updateOne({ _id: booking.venue }, { $inc: { approvalVersion: 1 } }, { session });
       if (!lock.matchedCount) fail(404, "Venue not found");
       const venue = await Venue.findById(booking.venue).session(session);
-      if (!venue || !approvalService.canDecide(approver, venue)) fail(403, "You cannot decide this cancellation exception");
+      if (!venue || !["ADMIN", "PRINCIPAL"].includes(approver.role) || !approvalService.canDecide(approver, venue)) fail(403, "Only management can decide cancellation requests");
       const decidedAt = new Date();
       updated = await Booking.findOneAndUpdate({ _id: booking._id, "cancellationException.status": "PENDING" }, { $set: {
         "cancellationException.status": decision,
@@ -145,13 +148,13 @@ async function decideCancellationException(approver, bookingId, decision, decisi
         "cancellationException.decidedAt": decidedAt,
         "cancellationException.decisionReason": decision === "REJECTED" ? decisionReason.trim() : "",
         ...(decision === "APPROVED" ? { status: "CANCELLED", decidedBy: approver._id, decidedAt } : {}),
-      }, ...(decision === "APPROVED" ? { $push: { history: { status: "CANCELLED", actor: approver._id, reason: "Late cancellation exception approved", changedAt: decidedAt } } } : {}) }, { new: true, runValidators: true, session });
+      }, ...(decision === "APPROVED" ? { $push: { history: { status: "CANCELLED", actor: approver._id, reason: "Late cancellation exception approved", changedAt: decidedAt } } } : {}) }, { returnDocument: "after", runValidators: true, session });
       if (!updated) fail(409, "The exception was decided concurrently");
       if (decision === "APPROVED" && booking.status === "APPROVED") {
         const released = await Reservation.deleteOne({ booking: booking._id }, { session });
         if (!released.deletedCount) fail(409, "The approved reservation could not be released");
       }
-      await Notification.create([{ recipient: booking.requester, type: "CANCELLATION_EXCEPTION", message: decision === "APPROVED" ? `Your late cancellation request for ${venue.name} was approved.` : `Your late cancellation request for ${venue.name} was declined: ${decisionReason.trim()}`, relatedBooking: booking._id }], { session });
+      await Notification.create([{ recipient: booking.requester, type: "CANCELLATION_EXCEPTION", message: decision === "APPROVED" ? `Your late cancellation request for ${venue.name} was approved.` : `Your late cancellation request for ${venue.name} was declined: ${decisionReason.trim()}`, relatedBooking: booking._id }], { session, ordered: true });
     });
     return updated;
   } finally { await session.endSession(); }

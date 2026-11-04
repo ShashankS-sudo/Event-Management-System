@@ -14,7 +14,7 @@ async function markNotificationRead(userId, notificationId) {
   return Notification.findOneAndUpdate(
     { _id: notificationId, recipient: userId },
     { $set: { isRead: true } },
-    { new: true }
+    { returnDocument: "after" }
   ).lean();
 }
 

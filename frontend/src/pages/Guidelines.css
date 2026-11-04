@@ -1,5 +1,5 @@
-.guidelines-page { min-height: 100vh; padding: 42px 5%; background: #f8fafc; color: #142746; font-family: Arial, sans-serif; }
-.guidelines-header, .guidelines-list, .guidelines-note, .guidelines-actions { max-width: 850px; margin-left: auto; margin-right: auto; }
+.guidelines-page { min-height: 100vh; padding: 42px 5%; background: #f4f7fb; color: #142746; font-family: Arial, sans-serif; }
+.guidelines-header, .guidelines-list, .guidelines-note, .guidelines-actions { max-width: 1030px; margin-left: auto; margin-right: auto; }
 .guidelines-header { position: relative; padding: 22px 0 25px; text-align: center; }
 .guidelines-back { position: absolute; top: 0; left: 0; color: #1554b5; font-size: 12px; font-weight: 700; text-decoration: none; }
 .guidelines-eyebrow { color: #1554b5; font-size: 10px; font-weight: 800; letter-spacing: 1.5px; }
@@ -13,6 +13,9 @@
 .guidelines-note { margin-top: 15px; padding: 16px 18px; border-left: 4px solid #f59e0b; border-radius: 6px; background: #fffbeb; }
 .guidelines-note strong { display: block; margin-bottom: 5px; color: #854d0e; font-size: 12px; }
 .guidelines-actions { display: flex; justify-content: center; gap: 10px; margin-top: 22px; }
+.guidelines-intro{max-width:1030px;margin:0 auto 24px;padding:25px 28px;display:grid;grid-template-columns:1.3fr .7fr;gap:30px;border-radius:10px;background:#102d59;color:#fff}.guidelines-intro .guidelines-eyebrow{color:#e3bf68}.guidelines-intro h2{margin:10px 0;color:white;font-size:23px}.guidelines-intro p{max-width:570px;color:#d8e1ef;font-size:13px;line-height:1.7}.guidelines-checklist{display:grid;grid-template-columns:1fr 1fr;gap:9px;align-content:center}.guidelines-checklist strong{grid-column:1/-1;color:#e3bf68;font-size:12px}.guidelines-checklist span{color:#eef3f9;font-size:11px}.guidelines-checklist span:before{content:"✓";margin-right:7px;color:#e3bf68;font-weight:800}.guideline-card{transition:transform .18s,border-color .18s,box-shadow .18s}.guideline-card:hover{transform:translateY(-2px);border-color:#b8c9e0;box-shadow:0 7px 20px #17365a0d}.guideline-number{border-radius:9px;background:#edf2f8;color:#123e80}.guidelines-note a{display:inline-block;margin-top:9px;color:#164e98;font-size:11px;font-weight:700;text-decoration:none}
 .guidelines-primary, .guidelines-secondary { padding: 11px 16px; border: 1px solid #1554b5; border-radius: 6px; color: #1554b5; font-size: 12px; font-weight: 700; text-decoration: none; }
 .guidelines-primary { background: #1554b5; color: #fff; }
+@media (max-width: 700px) { .guidelines-intro{grid-template-columns:1fr;padding:22px}.guidelines-checklist{grid-template-columns:1fr 1fr} }
 @media (max-width: 600px) { .guidelines-page { padding: 30px 4%; } .guidelines-header { padding-top: 42px; } .guideline-card { padding: 15px; gap: 12px; } .guidelines-actions { flex-direction: column; } .guidelines-actions a { text-align: center; } }
+@media(prefers-reduced-motion:reduce){.guideline-card{transition:none}}

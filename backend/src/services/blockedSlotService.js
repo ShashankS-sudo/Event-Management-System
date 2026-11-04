@@ -93,7 +93,7 @@ async function createBlockedSlot(admin, input = {}) {
               history: { status: "REJECTED", actor: admin._id, reason: rejectionReason, changedAt: decidedAt },
             },
           },
-          { new: true, runValidators: true, session }
+          { returnDocument: "after", runValidators: true, session }
         );
         if (rejected) {
           autoRejectedIds.push(rejected._id);
@@ -105,7 +105,7 @@ async function createBlockedSlot(admin, input = {}) {
           });
         }
       }
-      if (notifications.length) await Notification.create(notifications, { session });
+      if (notifications.length) await Notification.create(notifications, { session, ordered: true });
       result = { blockedSlot: block[0], autoRejectedIds };
     });
     return result;
@@ -135,7 +135,7 @@ async function removeBlockedSlot(admin, blockedSlotId) {
       removed = await BlockedSlot.findOneAndUpdate(
         { _id: block._id, isActive: true },
         { $set: { isActive: false, removedBy: admin._id, removedAt: new Date() } },
-        { new: true, session, runValidators: true }
+        { returnDocument: "after", session, runValidators: true }
       );
     });
     return removed;

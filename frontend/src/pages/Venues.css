@@ -7,6 +7,9 @@
   font-family: Arial, sans-serif;
 }
 
+.venues-banner{position:relative;min-height:250px;margin:-48px -5% 40px;padding:48px 5%;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;overflow:hidden;background:#102d59;color:#fff}.venues-banner:after{position:absolute;inset:0;content:"";background:linear-gradient(90deg,#102d59 0%,rgba(16,45,89,.94) 42%,rgba(16,45,89,.22) 100%)}.venues-banner>*:not(img){position:relative;z-index:1}.venues-banner>img{position:absolute;inset:0 0 0 40%;width:60%;height:100%;object-fit:cover}.venues-banner .eyebrow{color:#d9b55e}.venues-banner h1{max-width:640px;margin:12px 0;color:#fff;font-size:clamp(29px,4vw,45px);line-height:1.1}.venues-banner p{max-width:530px;color:#d7e0ed;font-size:13px;line-height:1.7}.venues-banner-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}.venues-banner-tags span{padding:7px 10px;border:1px solid #ffffff50;border-radius:20px;color:#f2f5fa;font-size:10px}
+.venues-heading h2{margin:10px 0;font-size:26px}.venues-heading .eyebrow{color:#a57a20}
+
 .venues-heading {
   display: flex;
   align-items: flex-end;
@@ -108,6 +111,7 @@
   .venues-page {
     padding: 30px 5%;
   }
+  .venues-banner{margin:-30px -5% 30px;padding:34px 5%;min-height:275px}.venues-banner>img{inset:0;width:100%;opacity:.44}.venues-banner:after{background:linear-gradient(90deg,rgba(16,45,89,.96),rgba(16,45,89,.58))}
 
   .venues-heading {
     align-items: flex-start;

@@ -76,7 +76,7 @@ async function applyDecision(bookingId, approver, decision, reason = "") {
             history: { status: decision, actor: approver._id, reason: cleanReason, changedAt: decidedAt },
           },
         },
-        { new: true, runValidators: true, session }
+        { returnDocument: "after", runValidators: true, session }
       );
       if (!updatedBooking) fail(409, "This booking has already been decided");
 
@@ -136,7 +136,7 @@ async function applyDecision(bookingId, approver, decision, reason = "") {
                 history: { status: "REJECTED", actor: approver._id, reason: autoReason, changedAt: decidedAt },
               },
             },
-            { new: true, runValidators: true, session }
+            { returnDocument: "after", runValidators: true, session }
           );
           if (rejected) {
             autoRejectedIds.push(rejected._id);
@@ -150,7 +150,7 @@ async function applyDecision(bookingId, approver, decision, reason = "") {
         }
       }
 
-      await Notification.create(notifications, { session });
+      await Notification.create(notifications, { session, ordered: true });
 
       result = { booking: updatedBooking, autoRejectedIds };
     });

@@ -5,6 +5,7 @@ const Booking = require("../src/models/Booking");
 const Venue = require("../src/models/Venue");
 const Reservation = require("../src/models/Reservation");
 const Notification = require("../src/models/Notification");
+const EmailOutbox = require("../src/models/EmailOutbox");
 const User = require("../src/models/User");
 const bookingService = require("../src/services/bookingService");
 const { cancelCustomerBooking, resubmitRejectedBooking, requestCancellationException } = require("../src/services/customerBookingActions");
@@ -23,6 +24,7 @@ function setUpCancellation(t, { status = "APPROVED", eventDate } = {}) {
     venueFind: Venue.findById,
     reservationDelete: Reservation.deleteOne,
     notificationCreate: Notification.create,
+    outboxCreate: EmailOutbox.create,
   };
   const current = { _id: bookingId, requester: customer._id, venue: venueId, slotKey: "morning", eventDate: eventDate || new Date("2099-12-15T00:00:00.000Z"), status, source: "REQUEST" };
   let released = false;
@@ -34,6 +36,7 @@ function setUpCancellation(t, { status = "APPROVED", eventDate } = {}) {
   Venue.findById = () => ({ session: async () => venue });
   Reservation.deleteOne = async () => { released = true; return { deletedCount: 1 }; };
   Notification.create = async (docs) => { notifications.push(...docs); return docs; };
+  EmailOutbox.create = async (docs) => docs;
   t.after(() => {
     mongoose.startSession = originals.startSession;
     Booking.findOne = originals.bookingFind;
@@ -42,6 +45,7 @@ function setUpCancellation(t, { status = "APPROVED", eventDate } = {}) {
     Venue.findById = originals.venueFind;
     Reservation.deleteOne = originals.reservationDelete;
     Notification.create = originals.notificationCreate;
+    EmailOutbox.create = originals.outboxCreate;
   });
   return { current, get released() { return released; }, notifications };
 }
@@ -98,7 +102,7 @@ test("resubmission creates a new version linked to the rejected original", async
 });
 
 test("requests a late cancellation exception and notifies approvers", async (t) => {
-  const originals = { startSession: mongoose.startSession, bookingFind: Booking.findOne, bookingUpdate: Booking.findOneAndUpdate, venueFind: Venue.findById, userFind: User.find, notificationCreate: Notification.create };
+  const originals = { startSession: mongoose.startSession, bookingFind: Booking.findOne, bookingUpdate: Booking.findOneAndUpdate, venueFind: Venue.findById, userFind: User.find, notificationCreate: Notification.create, outboxCreate: EmailOutbox.create };
   const current = { _id: bookingId, requester: customer._id, venue: venueId, slotKey: "morning", eventDate: new Date(Date.now() + 2 * 86400000), status: "APPROVED", source: "REQUEST", cancellationException: { status: "NONE" } };
   const approver = { _id: new mongoose.Types.ObjectId(), role: "ADMIN" };
   const notifications = [];
@@ -108,7 +112,8 @@ test("requests a late cancellation exception and notifies approvers", async (t) 
   Venue.findById = () => ({ session: async () => venue });
   User.find = () => ({ select() { return this; }, session() { return this; }, lean: async () => [approver] });
   Notification.create = async (docs) => { notifications.push(...docs); return docs; };
-  t.after(() => { mongoose.startSession = originals.startSession; Booking.findOne = originals.bookingFind; Booking.findOneAndUpdate = originals.bookingUpdate; Venue.findById = originals.venueFind; User.find = originals.userFind; Notification.create = originals.notificationCreate; });
+  EmailOutbox.create = async (docs) => docs;
+  t.after(() => { mongoose.startSession = originals.startSession; Booking.findOne = originals.bookingFind; Booking.findOneAndUpdate = originals.bookingUpdate; Venue.findById = originals.venueFind; User.find = originals.userFind; Notification.create = originals.notificationCreate; EmailOutbox.create = originals.outboxCreate; });
   const result = await requestCancellationException(customer, String(bookingId), "The event has been postponed unexpectedly.");
   assert.equal(result.cancellationException.status, "PENDING");
   assert.equal(notifications.length, 2);

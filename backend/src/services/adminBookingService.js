@@ -44,7 +44,7 @@ async function listApproverBookings(user, requestedStatus = "PENDING") {
     .sort({ eventDate: 1, createdAt: 1 })
     .limit(100)
     .populate("venue", "name slug type timeSlots")
-    .populate("requester", "name email")
+    .populate("requester", "name email phone organization")
     .lean();
 }
 

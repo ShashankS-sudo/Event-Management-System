@@ -65,6 +65,15 @@
 .admin-managed-venue > div { display: grid; gap: 4px; }
 .admin-managed-venue strong { color: #1e293b; font-size: 12px; }
 .admin-managed-venue span, .admin-managed-venue small { color: #64748b; font-size: 10px; }
+.admin-availability-controls > div { display: flex; gap: 12px; flex-wrap: wrap; }
+.admin-availability-controls label { display: grid; gap: 6px; color: #334155; font-size: 11px; font-weight: 700; }
+.admin-availability-controls select, .admin-availability-controls input { min-width: 210px; padding: 10px; border: 1px solid #d5deea; border-radius: 5px; background: #fff; color: #1e293b; }
+.admin-availability-slots { display: grid; gap: 8px; }
+.admin-availability-slot { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 13px 15px; border: 1px solid #e2e8f0; border-radius: 7px; background: #fff; }
+.admin-availability-slot > div { display: grid; gap: 4px; }
+.admin-availability-slot strong { color: #1e293b; font-size: 12px; }
+.admin-availability-slot small, .admin-availability-note { color: #64748b; font-size: 10px; }
+.admin-availability-note { margin-top: 13px; line-height: 1.6; }
 .admin-booking-list { display: grid; gap: 10px; }
 .admin-booking-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 17px 19px; border: 1px solid #e2e8f0; border-radius: 9px; background: #fff; }
 .admin-booking-info { min-width: 0; }

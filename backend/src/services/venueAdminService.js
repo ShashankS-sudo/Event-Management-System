@@ -65,7 +65,7 @@ async function updateVenue(venueId, input) {
           if (booking.status === "PENDING" && !changes.isActive) fail(409, "Venue cannot be deactivated while pending requests need a decision");
         }
       }
-      updated = await Venue.findByIdAndUpdate(venueId, changes, { new: true, runValidators: true, session }).lean();
+      updated = await Venue.findByIdAndUpdate(venueId, changes, { returnDocument: "after", runValidators: true, session }).lean();
       if (!updated) fail(404, "Venue not found");
     });
     return updated;

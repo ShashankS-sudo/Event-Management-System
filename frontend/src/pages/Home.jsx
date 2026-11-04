@@ -2,18 +2,13 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
 import { venueCapacity, venueDescription, venueImage } from "../utils/venuePresentation";
-import useAuth from "../context/useAuth";
+import SiteHeader from "../components/SiteHeader";
 import "./Home.css";
 
 function Home() {
   const [venues, setVenues] = useState([]);
   const [venuesLoading, setVenuesLoading] = useState(true);
   const [venuesError, setVenuesError] = useState("");
-  const { user, logout } = useAuth();
-
-  async function handleLogout() {
-    try { await logout(); } catch { setVenuesError("Could not sign out. Please try again."); }
-  }
 
   useEffect(() => {
     let active = true;
@@ -26,26 +21,7 @@ function Home() {
 
   return (
     <div className="home-page">
-      <header className="site-header">
-        <Link to="/" className="brand">
-          <span className="brand-emblem">S</span>
-          <span>
-            <strong>SJBIT</strong>
-            <small>Venue Booking System</small>
-          </span>
-        </Link>
-
-        <nav className="main-nav">
-          <Link to="/">Home</Link>
-          <Link to="/venues">Venues</Link>
-          <Link to="/bookings">My Bookings</Link>
-          <Link to="/notifications">Notifications</Link>
-          <Link to="/guidelines">Guidelines</Link>
-          <a href="#about">About</a>
-        </nav>
-
-        {user ? <button type="button" className="header-login" onClick={handleLogout}>Sign Out</button> : <Link to="/login" className="header-login">Login</Link>}
-      </header>
+      <SiteHeader />
 
       <main>
         <section className="hero">
@@ -67,10 +43,18 @@ function Home() {
 
           <div className="hero-image">
             <img
-              src="https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1400&q=85"
-              alt="Temporary university campus photograph"
+              src="https://www.sjbit.edu.in/img/home-about-bg.png"
+              alt="SJB Institute of Technology campus"
             />
           </div>
+        </section>
+
+        <section className="campus-facts" aria-label="About SJBIT">
+          <div><strong>2001</strong><span>Established</span></div>
+          <div><strong>13 acres</strong><span>Campus area</span></div>
+          <div><strong>NAAC A+</strong><span>Accreditation</span></div>
+          <div><strong>VTU</strong><span>Autonomous institution</span></div>
+          <Link to="/about">Discover SJBIT <span>→</span></Link>
         </section>
 
         <section className="venues-section" id="venues">
@@ -143,11 +127,16 @@ function Home() {
             </div>
           </div>
         </section>
+        <section className="home-about">
+          <div className="home-about-image"><img src="https://www.sjbit.edu.in/img/home-about-bg.png" alt="SJBIT campus architecture" loading="lazy" /></div>
+          <div className="home-about-copy"><span className="eyebrow">A CAMPUS FOR LEARNING AND COMMUNITY</span><h2>Make space for ideas, sport and celebration.</h2><p>SJBIT brings together academic learning, innovation and student life. This booking portal helps departments and campus organizers request spaces for their events and follow each request through review.</p><div className="home-about-values"><span>Humanity</span><span>Integrity</span><span>Teamwork</span><span>Innovation</span></div><Link to="/about" className="text-link">About SJBIT →</Link></div>
+        </section>
       </main>
 
       <footer className="site-footer" id="about">
-        <strong>SJBIT Venue Booking System</strong>
-        <p>A campus venue booking and management project.</p>
+        <div><strong>SJBIT Venue Booking System</strong><p>Space for campus learning, sport and community.</p></div>
+        <div><strong>SJB Institute of Technology</strong><p>BGS Health &amp; Education City, Dr. Vishnuvardhan Road,<br />Kengeri, Bengaluru – 560060, Karnataka, India</p></div>
+        <div className="footer-links"><Link to="/guidelines">Booking Guidelines</Link><Link to="/about">About SJBIT</Link><Link to="/contact">Contact</Link><a href="https://www.sjbit.edu.in/" target="_blank" rel="noreferrer">Official college website ↗</a></div>
       </footer>
     </div>
   );

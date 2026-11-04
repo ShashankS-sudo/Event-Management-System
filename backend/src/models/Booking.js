@@ -14,6 +14,13 @@ const bookingHistorySchema = new mongoose.Schema(
   { _id: false }
 );
 
+const contactDetailsSchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true, maxlength: 120 },
+  phone: { type: String, required: true, trim: true, maxlength: 30 },
+  email: { type: String, required: true, trim: true, lowercase: true, maxlength: 254 },
+  organization: { type: String, required: true, trim: true, maxlength: 120 },
+}, { _id: false });
+
 const bookingSchema = new mongoose.Schema(
   {
     venue: {
@@ -41,6 +48,7 @@ const bookingSchema = new mongoose.Schema(
     },
     eventTitle: { type: String, required: true, trim: true, minlength: 3, maxlength: 160 },
     department: { type: String, required: true, trim: true, maxlength: 120 },
+    contactDetails: { type: contactDetailsSchema, default: null },
     eventDate: { type: Date, required: true, index: true },
     slotKey: { type: String, required: true, trim: true },
     expectedAttendees: { type: Number, required: true, min: 1, max: 100000 },

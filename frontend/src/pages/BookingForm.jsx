@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import api from "../services/api";
+import useAuth from "../context/useAuth";
 import "./BookingForm.css";
 
 function BookingForm() {
@@ -8,6 +9,7 @@ function BookingForm() {
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const eventDate = searchParams.get("date") || "";
   const slotKey = searchParams.get("slot") || "";
   const [venue, setVenue] = useState(null);
@@ -18,6 +20,7 @@ function BookingForm() {
     eventDescription: "",
     facilitiesRequested: [],
     additionalRequirements: "",
+    contactDetails: { name: "", phone: "", email: "", organization: "" },
   });
   const [step, setStep] = useState("form");
   const [booking, setBooking] = useState(null);
@@ -76,7 +79,8 @@ function BookingForm() {
       const response = await api.post("/bookings", {
         venueSlug: id,
         eventTitle: form.eventTitle,
-        department: form.department,
+        department: form.department.trim() || form.contactDetails.organization.trim(),
+        contactDetails: { ...form.contactDetails, name: form.contactDetails.name.trim() || user?.name || "", email: form.contactDetails.email.trim() || user?.email || "" },
         eventDate,
         slotKey,
         expectedAttendees: Number(form.expectedAttendees),
@@ -140,7 +144,7 @@ function BookingForm() {
         ) : (
           <>
             <h1>{step === "review" ? "Review Your Booking" : `Book ${venue?.name || "Venue"}`}</h1>
-            <p className="booking-intro">{step === "review" ? "Check the details before submitting your request." : "Complete the event information. An authorized approver will review your request."}</p>
+            <p className="booking-intro">{step === "review" ? "Check the details before submitting your request." : "Enter your organization and contact details. Management will review the request before the venue is confirmed."}</p>
 
             <div className="booking-summary-strip">
               <div><span>Venue</span><strong>{venue?.name || id}</strong></div>
@@ -150,11 +154,22 @@ function BookingForm() {
 
             {step === "form" ? (
               <form onSubmit={(event) => { event.preventDefault(); setError(""); setStep("review"); }}>
+                <fieldset className="booking-contact-fields">
+                  <legend>Organization contact</legend>
+                  <div className="booking-field-row">
+                  <div><label htmlFor="contact-name">Contact person *</label><input id="contact-name" value={form.contactDetails.name || user?.name || ""} onChange={(event) => setForm((current) => ({ ...current, contactDetails: { ...current.contactDetails, name: event.target.value } }))} minLength={2} maxLength={120} required /></div>
+                    <div><label htmlFor="contact-phone">Phone number *</label><input id="contact-phone" type="tel" value={form.contactDetails.phone} onChange={(event) => setForm((current) => ({ ...current, contactDetails: { ...current.contactDetails, phone: event.target.value } }))} autoComplete="tel" maxLength={30} required /></div>
+                  </div>
+                  <div className="booking-field-row">
+                    <div><label htmlFor="contact-email">Contact email *</label><input id="contact-email" type="email" value={form.contactDetails.email || user?.email || ""} onChange={(event) => setForm((current) => ({ ...current, contactDetails: { ...current.contactDetails, email: event.target.value } }))} autoComplete="email" maxLength={254} required /></div>
+                    <div><label htmlFor="contact-organization">Organization name *</label><input id="contact-organization" value={form.contactDetails.organization} onChange={(event) => setForm((current) => ({ ...current, department: event.target.value, contactDetails: { ...current.contactDetails, organization: event.target.value } }))} minLength={2} maxLength={120} required /></div>
+                  </div>
+                </fieldset>
                 <label htmlFor="eventTitle">Event title *</label>
                 <input id="eventTitle" name="eventTitle" value={form.eventTitle} onChange={updateField} minLength={3} maxLength={160} required />
 
-                <label htmlFor="department">Organizing department / organization *</label>
-                <input id="department" name="department" value={form.department} onChange={updateField} maxLength={120} required />
+                <label htmlFor="department">Event organizing team / department (optional)</label>
+                <input id="department" name="department" value={form.department} onChange={updateField} maxLength={120} />
 
                 <div className="booking-field-row">
                   <div>
@@ -189,7 +204,9 @@ function BookingForm() {
               <>
                 <div className="review-details">
                   <p><strong>Event title</strong><span>{form.eventTitle}</span></p>
-                  <p><strong>Department / organization</strong><span>{form.department}</span></p>
+                  <p><strong>Organization</strong><span>{form.contactDetails.organization}</span></p>
+                  <p><strong>Contact</strong><span>{form.contactDetails.name || user?.name} · {form.contactDetails.phone} · {form.contactDetails.email || user?.email}</span></p>
+                  {form.department && <p><strong>Event team / department</strong><span>{form.department}</span></p>}
                   <p><strong>Date and time</strong><span>{eventDate} · {slot?.label || slotKey}</span></p>
                   <p><strong>Expected attendees</strong><span>{form.expectedAttendees}</span></p>
                   <p><strong>Facilities</strong><span>{form.facilitiesRequested.join(", ") || "None selected"}</span></p>

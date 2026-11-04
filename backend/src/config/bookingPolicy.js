@@ -9,5 +9,6 @@ function readInteger(name, fallback, min, max) {
 }
 
 const CANCELLATION_DEADLINE_DAYS = readInteger("CANCELLATION_DEADLINE_DAYS", 4, 0, 365);
+const BOOKING_MINIMUM_NOTICE_DAYS = readInteger("BOOKING_MINIMUM_NOTICE_DAYS", 2, 0, 365);
 
-module.exports = { CANCELLATION_DEADLINE_DAYS };
+module.exports = { CANCELLATION_DEADLINE_DAYS, BOOKING_MINIMUM_NOTICE_DAYS };

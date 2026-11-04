@@ -1,14 +1,14 @@
 # SJBIT College Venue Booking and Management System
 ## Implementation Status Report
 
-**Assessment date:** 1 November 2026
+**Assessment date:** 4 November 2026
 **Scope:** Initial repository review, followed by incremental implementation of venue, booking, availability, customer and approval workflows, notifications, separate administration screens, blocked-slot management, manual reservations, customer notification/guidelines UI, and shared session/sign-out. Remaining operational workflows are in progress.
 
 ## 1. Executive summary
 
-The repository contains a React/Vite frontend, an Express/Mongoose backend, and an authentication implementation. Backend models and APIs cover venues, booking requests, approved reservations, blocked periods, notifications, approval, manual reservations, customer cancellation/exception/resubmission, and ADMIN venue management. The frontend includes API-backed venue browsing, guidelines, booking request/review/confirmation, customer history/notification pages, shared session state, sign-out, and admin approval/block/manual-booking/venue screens. Email delivery and some operational capabilities remain unimplemented.
+The repository contains a React/Vite frontend, an Express/Mongoose backend, and an authentication implementation. Backend models and APIs cover venues, booking requests, approved reservations, blocked periods, notifications, approval, manual reservations, customer cancellation/exception/resubmission, and ADMIN venue management. The frontend includes API-backed venue browsing, guidelines, booking request/review/confirmation, customer history/notification pages, shared session state, sign-out, About and Contact pages, and admin approval/block/manual-booking/venue screens. Management email is queued; SMTP delivery credentials remain unconfigured.
 
-The supplied screenshots are visual/workflow references. Their labels and example capacities, dates, and booking statuses are not verified project data and should not be treated as official SJBIT policy.
+The supplied screenshots are visual/workflow references. Venue names, capacities, daily hours, SJBIT Campus locations, and the no-facilities configuration have been confirmed by the user and applied. Screenshot dates and booking statuses are not project data.
 
 ## 2. Actual project structure and stack
 
@@ -51,7 +51,7 @@ The supplied screenshots are visual/workflow references. Their labels and exampl
 
 ### Frontend
 
-- React Router routes the home, login, registration, venue list, venue detail, and availability pages.
+- React Router routes the home, login, registration, venue list, venue detail, availability, About, and Contact pages.
 - Home, venue list, and venue details now load active venue names and configured data from the backend; temporary presentation images are selected by venue slug. Missing capacities, locations, facilities, or descriptions are shown as unconfirmed rather than invented.
 - Added a guidelines page describing the implemented request, approval, tracking, cancellation, and exception workflows. It explicitly states that official SJBIT policy details need confirmation.
 - Added a shared frontend session context initialized from `/api/auth/me`, sign-out actions on public/admin navigation, role-aware post-login routing, and an email-only login label matching the backend.
@@ -63,14 +63,14 @@ The supplied screenshots are visual/workflow references. Their labels and exampl
 ## 4. Incomplete or missing requirements
 
 - **Authentication experience:** Shared session state, sign-out, role-aware post-login routing, and the email login label are implemented. Account recovery remains unavailable; ongoing privileged-account management and production session/CSRF settings need work.
-- **Registration:** No optional organization name or account-type support for external organizations. No UI for department or other account profile details.
-- **Venue data:** Frontend venue cards/details are API-backed and the duplicated venue records were removed. Venue records are not seeded, and official capacities, schedules, facilities, descriptions, and locations still need confirmation.
-- **Bookings:** Request, own-booking, approval, manual reservation, cancellation, late-cancellation exception, and resubmission APIs plus user booking screens exist. Atlas-backed transaction concurrency still needs verification.
-- **Availability and reservations:** Backend availability calculation, approval reservation writes, and ADMIN blocked-period writes exist; the frontend availability screen is connected. Real database concurrency behavior still needs Atlas-backed integration verification.
+- **Registration:** Customers provide organization contact name, phone, email, and organization name on each booking request. Organization claims are not verified, per user direction.
+- **Venue data:** Four active venue records use the confirmed names, capacities, daily hours, SJBIT Campus location, and empty facilities lists.
+- **Bookings:** Request, own-booking, approval, manual reservation, cancellation, late-cancellation exception, and resubmission APIs plus user booking screens exist. New customer requests require an organization contact name, phone, email, and organization name. The Atlas integration checks cover simultaneous same-slot approvals, manual-reservation-vs-approval, blocked-period-vs-approval, booking-submission-vs-block, regular cancellation, approved late exceptions, and concurrent late-exception submissions/decisions. Other transaction flows still need coverage.
+- **Availability and reservations:** Backend availability calculation, approval reservation writes, and ADMIN blocked-period writes exist; the frontend availability screen is connected. Atlas transaction support and the covered write races are verified; other transaction interactions remain untested.
 - **Administrative capabilities:** Dashboard, navigation, approval queue, blocked-slot management, manual booking, venue/slot management, and controlled initial ADMIN provisioning now exist. Ongoing privileged account administration remains.
-- **Authorization policy:** The approval service enforces Principal/Admin access and CSE HOD access only for the CSE Seminar Hall. Initial ADMIN provisioning is available by local script; HOD/Principal provisioning and full institutional policy integration remain.
-- **Notifications and guidelines:** In-app notification APIs and read/unread UI exist. The guidelines page describes current app behavior; official policy validation and email delivery remain outstanding.
-- **Verification:** 49 backend unit-level checks pass. They mock transaction sessions; real MongoDB transaction support and concurrent approval behavior remain unverified against Atlas.
+- **Authorization policy:** The approval service enforces Principal/Admin access and CSE HOD access only for Seminar Hall. The named demo Principal account has been provisioned; no other privileged accounts were requested.
+- **Notifications and guidelines:** In-app notifications exist. Booking and cancellation email messages are transactionally queued for management; actual delivery needs the Gmail App Password in the local environment file.
+- **Verification:** 55 backend unit-level checks pass. They mock transaction sessions. Atlas accepted a read-only transaction, and isolated integration checks verified approval-vs-approval, manual-vs-approval, block-vs-approval, booking-submission-vs-block, regular and late cancellation, and cancellation-exception races.
 
 ## 5. Architecture and risk observations
 
@@ -78,12 +78,12 @@ The supplied screenshots are visual/workflow references. Their labels and exampl
 - Venue records are loaded from the backend by Home, Venues, and VenueDetails. Presentation images remain mapped to known venue slugs; new venues use a generic fallback image.
 - The backend now has a basic centralized error response handler; reusable API request validation middleware is still absent despite validation-related dependencies being present.
 - Frontend API URL and backend CORS origins are environment-configurable. Production cookie, CSRF, secret management, reverse-proxy, and shared rate-limit-store settings still need review.
-- `server.js` overrides DNS servers globally with public resolver IPs. This is an unusual deployment-level workaround and should be investigated before production use rather than silently retained as a required application behavior.
+- Startup now validates MongoDB URI presence, JWT secret length, production CORS origins, port, and proxy-hop configuration. MongoDB resolution uses the system DNS configuration.
 - Authentication endpoints have an in-memory rate limit; use a shared store for multi-instance production deployments.
 - The role enum includes `ADMIN`, and approval policy checks venue/department. Initial ADMIN setup is a local script; there is no web endpoint for privileged account creation.
 - The current authentication flow uses HTTP-only cookies and reloads the user from the database, which is a useful base. Production cookie, CORS, CSRF, secret management, and deployment settings still need review.
 - Replaced the Vite starter root layout and automatic dark-mode styles with a responsive application-wide base stylesheet.
-- Account recovery, session/CSRF review, confirmation of college policy, and end-to-end acceptance remain open.
+- Account recovery, session/CSRF review, and end-to-end acceptance remain open. The demo Principal password is temporary and should be replaced before shared or production use.
 
 ## 6. Incremental implementation roadmap
 
@@ -98,7 +98,7 @@ The supplied screenshots are visual/workflow references. Their labels and exampl
 1. Models, indexes, public venue reads, availability calculation, request submission, and customer booking reads are implemented.
 2. Implemented approval with transaction locking, conflict checks, the one-hour buffer, blocked-slot checks, and automatic rejection of conflicting pending requests.
 3. Cancellation, post-cutoff exception handling, rejected-request resubmission, and initial ADMIN provisioning are implemented.
-4. Add Atlas-backed integration coverage for simultaneous approvals and the business rules.
+4. Atlas accepts read-only transactions, and simultaneous same-slot approvals are integration-tested; expand integration coverage to other transaction flows and business rules.
 
 ### Phase 3 — User booking workflow
 
@@ -110,7 +110,7 @@ The supplied screenshots are visual/workflow references. Their labels and exampl
 ### Phase 4 — Administrative experience
 
 1. Separate admin route/layout, dashboard, and approval queue/details are implemented with server-enforced role and department policy.
-2. Blocked-slot management, manual reservations, and venue/time-slot management are implemented. Add administrative availability views.
+2. Blocked-slot management, manual reservations, venue/time-slot management, and an administrative availability view are implemented.
 
 ### Phase 5 — Notifications and release readiness
 
@@ -120,7 +120,7 @@ The supplied screenshots are visual/workflow references. Their labels and exampl
 
 ## 7. Recommended immediate next step
 
-The admin dashboard, approval queue, blocked-slot management, manual reservations, venue/slot administration, cancellation, rejected-request resubmission, notification UI, post-cutoff cancellation exception workflow, guidelines page, API-backed venue browsing, shared session/sign-out, and initial ADMIN provisioning are implemented and pass checks. Next is deployment/security configuration and acceptance verification. Atlas-backed transaction verification and confirmed venue/policy data remain release requirements.
+The admin dashboard, approval queue, blocked-slot management, manual reservations, venue/slot administration, cancellation, rejected-request resubmission, notification UI, post-cutoff cancellation exception workflow, guidelines page, API-backed venue browsing, shared session/sign-out, and initial ADMIN provisioning are implemented and pass checks. The public venue endpoint returns the four seeded Atlas records. Approval-vs-approval, manual-vs-approval, block-vs-approval, and cancellation transaction checks pass against Atlas using isolated temporary databases. Next is integration coverage for remaining transaction interactions and environment-specific release checks. Confirmed venue/policy details remain a release requirement.
 
 ## 8. Implementation progress
 
@@ -134,7 +134,7 @@ The admin dashboard, approval queue, blocked-slot management, manual reservation
 - Added authenticated customer request submission and own-booking list/detail APIs.
 - Added transactional booking decisions and in-app notifications for submission, approval, rejection, and conflicting auto-rejection. Notification writes roll back with booking changes.
 - Added authenticated notification list/unread count and mark-read APIs.
-- Verification: 49 backend tests passed; JavaScript syntax checks passed.
+- Verification: 52 backend tests passed; JavaScript syntax checks passed.
 - Connected the availability page to live backend slot statuses and added a booking form with review, submission, and confirmation. Login redirects back to the booking form after sign-in.
 - Added My Bookings and booking detail pages, including owner-scoped loading, status filters, decision history, and rejection reason display.
 - Frontend verification: ESLint and Vite production build passed.
@@ -144,8 +144,8 @@ The admin dashboard, approval queue, blocked-slot management, manual reservation
 - Added the customer notifications page at `/notifications`, including unread count, mark-one/mark-all read actions, booking links, loading/error states, and a Home navigation link.
 - Added the late-cancellation exception API and customer form. Requests require a reason and can only be submitted after the configured cutoff; approver notifications are generated.
 - Added a Late Cancellations filter to the admin approval queue. Authorized decisions record the approver and outcome; approval cancels the booking and releases its reservation in the transaction.
-- Verification: 49 backend tests passed; frontend ESLint and Vite production build passed.
-- No venue seed data was added because authoritative capacities, facilities, and schedules are not confirmed.
+- Verification: 52 backend tests passed; frontend ESLint and Vite production build passed.
+- Added a repeatable, idempotent seed script for the four user-confirmed venue names; it leaves unconfirmed capacity, location, facilities, hours, and slots unset.
 
 ### Component 2 — Booking data model (complete)
 
@@ -197,27 +197,27 @@ The admin dashboard, approval queue, blocked-slot management, manual reservation
 - Added `/admin/dashboard` and `/admin/bookings` under a separate administrative layout. HODs outside CSE are denied access in the UI, and the backend independently limits CSE HOD queue records to the CSE Seminar Hall.
 - Added booking detail review, approval, rejection with a required reason, and feedback when conflicting pending requests are automatically rejected.
 - Added the queue API and status/role-scope tests.
-- Verification: all 49 backend tests passed; frontend ESLint and Vite production build passed.
+- Verification: all 52 backend tests passed; frontend ESLint and Vite production build passed.
 
 ### Component 10 — Blocked-slot management (complete)
 
 - Added ADMIN-only active block list, create, and removal endpoints. Creation uses the shared venue transaction lock, reports approved-reservation conflicts, and auto-rejects/notifies pending requests overlapping the saved block.
 - Added the admin blocked-slots page with campus-time date/time inputs, conflict reporting, and active block removal.
-- Verification: included in the 49 passing backend tests; frontend ESLint and Vite production build passed.
+- Verification: included in the 52 passing backend tests; frontend ESLint and Vite production build passed.
 
 ### Component 12 — Customer cancellation and resubmission (complete)
 
 - Added transaction-safe cancellation with a configurable four-day deadline. Pending bookings are cancelled directly; approved bookings also release their reservation and create a notification.
 - Resubmission creates a new pending Booking linked to the rejected original, preserving previous decisions and notifying the customer.
 - Added cancellation and edit/resubmit actions to the customer booking detail page.
-- Verification: included in the 49 passing backend tests; frontend ESLint and Vite production build passed.
+- Verification: included in the 52 passing backend tests; frontend ESLint and Vite production build passed.
 
 ### Component 11 — Manual reservations (complete)
 
 - Added ADMIN-only `POST /api/admin/manual-bookings`. A manual booking is an approved Booking record with `source: MANUAL` and no customer requester.
 - Manual creation checks configured availability and capacity, writes an approved Reservation through the one-hour cleaning buffer, and auto-rejects/notifies conflicting pending requests in the transaction.
 - Added the ADMIN manual booking form.
-- Verification: included in the 49 passing backend tests; frontend ESLint and Vite production build passed.
+- Verification: included in the 52 passing backend tests; frontend ESLint and Vite production build passed.
 
 ### Component 13 — Customer notifications UI (complete)
 
@@ -229,42 +229,112 @@ The admin dashboard, approval queue, blocked-slot management, manual reservation
 
 - Added customer exception requests with a required reason after the configured cutoff, plus transactional notifications to the customer and eligible approvers.
 - Added an approver queue filter and decision actions. Approval cancels the booking and releases an approved reservation; rejection records the decision and sends the customer an update.
-- Verification: 49 backend tests passed, including exception-request notification coverage; frontend ESLint and Vite production build passed.
+- Verification: 52 backend tests passed, including exception-request notification coverage; frontend ESLint and Vite production build passed.
 
 ### Component 15 — Guidelines and API-backed venue pages (complete; official policy data pending)
 
 - Added the `/guidelines` page with clear booking, approval, tracking, and cancellation instructions, plus a notice that official SJBIT policies need confirmation.
 - Connected Home, Venues, and VenueDetails to the public venue API; removed duplicated venue descriptions, capacities, and details from the frontend. Temporary images remain mapped by venue slug for presentation only.
-- Venue record seeding and official data validation remain pending because authoritative SJBIT capacities, facilities, schedules, and policy details have not been provided.
-- Verification: 49 backend tests passed; frontend ESLint and Vite production build passed.
+- The four active venue records have been seeded. Official data validation for capacities, facilities, schedules, and policy details remains pending.
+- Verification: 52 backend tests passed; frontend ESLint and Vite production build passed.
 
 ### Component 16 — Shared session and sign-out (complete; account recovery pending)
 
 - Added frontend shared session state initialized through `/api/auth/me` and updated after login; role-based accounts default to the admin dashboard after login.
 - Added sign-out actions in the public home header and admin header. The authenticated profile now exposes the department needed for HOD venue scoping.
 - Changed the login label and prompt to email to match the backend's email-only authentication.
-- Verification: 49 backend tests passed; frontend ESLint and Vite production build passed.
+- Verification: 52 backend tests passed; frontend ESLint and Vite production build passed.
 
 ### Component 17 — Initial administrator provisioning and auth throttling (complete; operational verification pending)
 
 - Added `npm run admin:create`, a local-only account creation script for the initial ADMIN. It requires environment-provided credentials, enforces a 12-character minimum password, hashes credentials, and refuses to modify an existing account.
 - Added a 10-attempt per 15-minute in-memory rate limit to login and registration; removed the temporary `/api/auth/admin-test` route.
 - Updated README with local run, test, and first-admin provisioning instructions.
-- Verification: backend suite remains at 49 passing tests; frontend ESLint and Vite production build passed. The provisioning script was syntax-checked but not run against the unavailable database.
+- Verification: backend suite remains at 52 passing tests; frontend ESLint and Vite production build passed. The provisioning script was syntax-checked but not run against the unavailable database.
 
 ### Component 18 — Deployment endpoint configuration (complete; production security review pending)
 
 - Frontend API base can be configured with `VITE_API_URL`; backend credentialed CORS can use `FRONTEND_ORIGIN` or a comma-separated `FRONTEND_ORIGINS` list.
 - Documented local and deployment configuration variables in the README. Production cookie/CSRF, secrets, proxy trust, and shared rate-limit storage still need environment-specific review.
-- Verification: 49 backend tests passed; frontend ESLint and Vite production build passed.
+- Verification: 52 backend tests passed; frontend ESLint and Vite production build passed.
 
 ### Component 19 — ADMIN venue and time-slot management (complete; authoritative data entry pending)
 
 - Added ADMIN-only venue listing, creation, and update endpoints and the `/admin/venues` configuration screen.
 - Updates share the venue transaction lock with booking operations. With pending/approved requests, the system prevents slug/schedule changes, capacity reductions below booked attendance, removing requested facilities, and deactivation while pending requests await decisions.
-- Verification: 49 backend tests passed, including checks for safe edits and schedule protection; frontend ESLint and Vite production build passed.
+- Verification: 52 backend tests passed, including checks for safe edits and schedule protection; frontend ESLint and Vite production build passed.
 
 ### Component 20 — Responsive global style foundation (complete)
 
 - Removed the starter fixed-width centered root, dark-mode color overrides, and broad default heading sizes; added a light, responsive base with consistent box sizing and form typography.
-- Verification: 49 backend tests passed; frontend ESLint and Vite production build passed.
+- Verification: 52 backend tests passed; frontend ESLint and Vite production build passed.
+
+### Component 21 — Initial venue records (complete; venue details pending)
+
+- Seeded and read-back verified four active records in the configured MongoDB database: Auditorium, Basketball Ground, Cricket Ground, and CSE Seminar Hall.
+- The seed script is idempotent and leaves capacities, locations, facilities, operating hours, and booking slots unset until confirmed.
+- Verification: a second seed run confirmed 0 additional inserts and all 4 active records present; a read-only `GET /api/venues` smoke check returned the four active venue records.
+
+### Component 22 — Runtime configuration validation (complete; production deployment review pending)
+
+- Removed the hard-coded global DNS resolver override after confirming the configured Atlas connection works with the system resolver.
+- Added startup validation for MongoDB URI, minimum JWT secret length, production CORS origins, valid port, and reverse-proxy hop count. Added tests for local defaults, production origin requirements, and invalid settings.
+- Verification: 52 backend tests passed; frontend ESLint and Vite production build passed. API smoke test against Atlas returned all four seeded venues.
+
+### Component 23 — Atlas transaction capability check (complete; broader integration coverage pending)
+
+- Added `npm run db:check-transactions`, a read-only check that queries an active venue inside a MongoDB transaction and writes no data.
+- Verification: configured MongoDB Atlas accepted the read-only transaction. The same-slot simultaneous approval race is recorded under Component 25.
+
+### Component 24 — Administrative availability view (complete; current schedule data pending)
+
+- Added `/admin/availability` with venue/date filters and live slot status, using the existing availability API.
+- HOD view is scoped to the CSE Seminar Hall; ADMIN and Principal users can inspect all active venues.
+- Verification: frontend ESLint and Vite production build passed.
+
+### Component 25 — Atlas concurrent booking write integration checks (complete; broader transaction coverage pending)
+
+- Added `npm run db:check-concurrency`. It targets a randomly named temporary database and tests approval-vs-approval, manual-reservation-vs-approval, blocked-period-vs-approval, and booking-submission-vs-block races, then drops the temporary database.
+- Each scenario verifies a single winner and no conflicting reservation or pending request. All four scenarios passed twice against Atlas.
+- The check exposed a Mongoose 9 issue: multi-document notification creation inside a transaction required `ordered: true`. Added the option to notification batches across approval, blocked-slot, manual-reservation, and cancellation-exception services.
+- Replaced deprecated `new: true` query options with `returnDocument: "after"` in the affected services.
+- Verification: all four isolated Atlas concurrency scenarios passed twice; all 52 backend tests pass. The application venue database was not modified by the concurrency runs.
+
+### Component 26 — Atlas cancellation transaction checks (complete)
+
+- Added `npm run db:check-cancellations`. In a separate temporary database, it verifies regular approved-booking cancellation, approved late-exception cancellation, concurrent duplicate exception submissions, and competing approval/rejection decisions.
+- The race checks verify one exception submission/decision wins, the reservation and booking status stay consistent, and only the expected notifications are committed.
+- Verification: all scenarios passed against Atlas; the temporary database was dropped. The application venue database was not modified. All 52 backend unit tests pass.
+
+### Component 27 — SJBIT content and frontend refresh (complete; official booking policy details pending)
+
+- Added a dedicated About page with the institute history, location, vision, mission, core values, and accreditation/autonomous status drawn from SJBIT’s official site.
+- Expanded the home page with verified campus facts, an official SJBIT campus image, a campus story panel, and an institute address/footer. Updated the palette to navy, white, and gold with restrained hover motion and reduced-motion support.
+- Expanded Guidelines with a request-preparation checklist, booking steps, status explanations, and cancellation guidance. The page distinguishes application behavior from college venue rules and directs users to the college office for unconfirmed capacities, facilities, approvals, access, safety, and other venue policies.
+- Verification: frontend ESLint and Vite production build passed.
+
+### Component 28 — Public site UI and Contact Us page (complete)
+
+- Added a shared public header across home, About, venue directory/details, Guidelines, Login, and Contact, with account-aware sign-in/sign-out and consistent navigation.
+- Added a Contact Us page with the SJBIT address, reception phone numbers, principal office email, map directions, and booking help paths. Details link back to the official college contact page.
+- Expanded venue directory descriptions with practical, venue-specific context while keeping capacity, equipment, access, and facilities subject to college confirmation.
+- Added a photo-led venue directory banner and applied the navy, gold, and white visual system to the public flows; styled registration to match.
+- Verification: frontend ESLint and Vite production build passed.
+
+### Component 29 — Confirmed venue schedule and organization booking details (complete)
+
+- Seeded the confirmed names and capacities: Auditorium (1,500), Basketball Ground (150), Cricket Ground (5,000), and Seminar Hall (100). Kept the Seminar Hall route slug so the CSE HOD authorization remains scoped correctly.
+- Configured daily opening hours: 8:30 a.m.–8:30 p.m. for the Auditorium and grounds; 8:30 a.m.–4:30 p.m. for Seminar Hall. Generated continuous hourly ranges of one or more hours, and kept the one-hour cleanup buffer in reservation conflict calculations.
+- Enforced the two-day minimum booking notice. Kept the four-day customer cancellation cutoff; late cancellation requests are decided by ADMIN/PRINCIPAL management users, with the CSE HOD excluded from cancellation decisions.
+- Set all four venue locations to “SJBIT Campus” and their facilities lists to empty, per the user's clarification.
+- Added required per-request organization contact name, phone, email, and organization name. Admin approvers can review those contact details from the request.
+- Updated the active Atlas venue records. The seed command checked for pending/approved bookings that would use removed slot keys before applying schedule changes; none prevented the update. Verification returned all four names/capacities/hours and 78 hourly ranges for each long-day venue and 36 for Seminar Hall.
+- Verification: all 55 backend unit tests pass; frontend ESLint and Vite production build pass.
+
+### Component 30 — Management email outbox and demo approver provisioning (implemented; SMTP password pending)
+
+- Added a MongoDB email outbox. Booking submissions, resubmissions, regular cancellations, and late-cancellation requests enqueue messages in the same transaction as the related booking change, addressed to the management inbox `1jb24cs172gdg@gmail.com`.
+- Added an SMTP delivery worker with retry/backoff and stale-send recovery. It activates when `SMTP_HOST`, `SMTP_USER`, and `SMTP_PASSWORD` are set. The repository includes a secret-free `.env.example`; no SMTP password was written to the workspace.
+- Extended the safe initial account provisioning script to support the supplied demo Principal identity (Shashank S, Principal, CSE, `1jb24cs172gdg@gmail.com`). The user-authorized local demo account was provisioned with the temporary password they supplied; provisioning values were removed from `.env` afterward. Other approver accounts remain unconfigured as requested.
+- Configured Gmail SMTP host, port, sender, and management recipient in the ignored local `.env`. The App Password is still blank, so the outbox queues messages until it is added.
+- Verification: the 55 backend unit tests pass. Isolated Atlas cancellation and concurrency checks pass with assertions that booking and cancellation email records are created transactionally. Frontend lint and production build pass.

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
 import { venueCapacity, venueDescription, venueImage } from "../utils/venuePresentation";
+import SiteHeader from "../components/SiteHeader";
 import "./Venues.css";
 
 function Venues() {
@@ -20,10 +21,11 @@ function Venues() {
   }, [retry]);
 
   return (
-    <main className="venues-page">
+    <><SiteHeader /><main className="venues-page">
+      <section className="venues-banner"><span className="eyebrow">CAMPUS SPACES · SJBIT BENGALURU</span><h1>Find the right space for your next event.</h1><p>Browse the campus venues, review the details currently available, and check date-specific availability.</p><div className="venues-banner-tags"><span>Academic events</span><span>Student activities</span><span>Sports &amp; campus life</span></div><img src="https://www.sjbit.edu.in/img/home-about-bg.png" alt="SJB Institute of Technology campus" /></section>
       <header className="venues-heading">
-        <div><span className="eyebrow">SJBIT VENUE BOOKING SYSTEM</span><h1>Choose a Venue</h1><p>Select a venue to view its confirmed details and check availability.</p></div>
-        <Link to="/" className="venues-home-link">← Back to Home</Link>
+        <div><span className="eyebrow">EXPLORE THE VENUE DIRECTORY</span><h2>Campus venues</h2><p>Capacity, facility and schedule details appear as SJBIT confirms them.</p></div>
+        <Link to="/guidelines" className="venues-home-link">How booking works →</Link>
       </header>
       {loading && <p className="venues-state" aria-live="polite">Loading venues…</p>}
       {error && <div className="venues-state venues-error" role="alert"><p>{error}</p><button type="button" onClick={() => { setError(""); setLoading(true); setRetry((value) => value + 1); }}>Try again</button></div>}
@@ -36,7 +38,7 @@ function Venues() {
           </div>
         </article>)}
       </section>}
-    </main>
+    </main></>
   );
 }
 

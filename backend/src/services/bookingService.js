@@ -2,8 +2,11 @@ const mongoose = require("mongoose");
 const Booking = require("../models/Booking");
 const Venue = require("../models/Venue");
 const Notification = require("../models/Notification");
+const EmailOutbox = require("../models/EmailOutbox");
 const availabilityService = require("./availabilityService");
 const { parseCampusDate } = availabilityService;
+const { BOOKING_MINIMUM_NOTICE_DAYS } = require("../config/bookingPolicy");
+const { bookingEmail } = require("./emailOutboxService");
 
 function fail(status, message) {
   const error = new Error(message);
@@ -15,11 +18,18 @@ function campusToday() {
   return new Date(Date.now() + 330 * 60 * 1000).toISOString().slice(0, 10);
 }
 
+function minimumBookingDate() {
+  const [year, month, day] = campusToday().split("-").map(Number);
+  const minimum = new Date(Date.UTC(year, month - 1, day + BOOKING_MINIMUM_NOTICE_DAYS));
+  return minimum.toISOString().slice(0, 10);
+}
+
 async function submitBookingRequest(user, input, { resubmittedFrom = null, notificationType = "BOOKING_SUBMITTED" } = {}) {
   const {
     venueSlug,
     eventTitle,
     department,
+    contactDetails,
     eventDate,
     slotKey,
     expectedAttendees,
@@ -35,8 +45,17 @@ async function submitBookingRequest(user, input, { resubmittedFrom = null, notif
   if (typeof department !== "string" || !department.trim() || department.trim().length > 120) {
     fail(400, "Department or organization is required");
   }
-  if (!parseCampusDate(eventDate) || eventDate < campusToday()) {
-    fail(400, "Event date must be today or a future date in YYYY-MM-DD format");
+  if (!contactDetails || typeof contactDetails !== "object") fail(400, "Contact person and organization details are required");
+  const contactName = typeof contactDetails.name === "string" ? contactDetails.name.trim() : "";
+  const contactPhone = typeof contactDetails.phone === "string" ? contactDetails.phone.trim() : "";
+  const contactEmail = typeof contactDetails.email === "string" ? contactDetails.email.trim().toLowerCase() : "";
+  const contactOrganization = typeof contactDetails.organization === "string" ? contactDetails.organization.trim() : "";
+  if (contactName.length < 2 || contactName.length > 120) fail(400, "Contact name must contain 2 to 120 characters");
+  if (!/^\+?[\d\s()-]{7,30}$/.test(contactPhone) || contactPhone.replace(/\D/g, "").length < 7) fail(400, "Enter a valid contact phone number");
+  if (contactEmail.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) fail(400, "Enter a valid contact email address");
+  if (contactOrganization.length < 2 || contactOrganization.length > 120) fail(400, "Organization name must contain 2 to 120 characters");
+  if (!parseCampusDate(eventDate) || eventDate < minimumBookingDate()) {
+    fail(400, `Bookings must be submitted at least ${BOOKING_MINIMUM_NOTICE_DAYS} days before the event`);
   }
   if (typeof slotKey !== "string" || !slotKey.trim()) fail(400, "A configured time slot is required");
   if (!Number.isInteger(expectedAttendees) || expectedAttendees < 1 || expectedAttendees > 100000) {
@@ -93,6 +112,7 @@ async function submitBookingRequest(user, input, { resubmittedFrom = null, notif
         resubmittedFrom,
         eventTitle: eventTitle.trim(),
         department: department.trim(),
+        contactDetails: { name: contactName, phone: contactPhone, email: contactEmail, organization: contactOrganization },
         eventDate: new Date(`${eventDate}T00:00:00.000Z`),
         slotKey: slot.key,
         expectedAttendees,
@@ -111,6 +131,7 @@ async function submitBookingRequest(user, input, { resubmittedFrom = null, notif
           : `Your booking request for ${venue.name} has been submitted for approval.`,
         relatedBooking: booking._id,
       }], { session });
+      await EmailOutbox.create([bookingEmail(booking, venue, notificationType)], { session, ordered: true });
     });
     return booking;
   } finally {

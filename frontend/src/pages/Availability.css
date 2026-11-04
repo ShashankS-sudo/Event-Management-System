@@ -2,7 +2,7 @@
 .availability-page {
   min-height: 100vh;
   padding: 36px 5%;
-  background: #f8fafc;
+  background: #f3f6fa;
   color: #142746;
   font-family: Arial, sans-serif;
 }
@@ -116,6 +116,8 @@
   margin-top: 16px;
 }
 
+.range-selectors{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px;padding:18px;border:1px solid #e1e7ef;border-radius:8px;background:#fbfcfe}.range-selectors label{display:grid;gap:8px;color:#253b5d;font-size:12px;font-weight:700}.range-selectors select{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:6px;background:white;color:#142746;font:13px Arial,sans-serif}.range-selectors select:focus{border-color:#164e98;outline:2px solid #dce7f5}.range-status{grid-column:1/-1;color:#47617e;font-size:12px}.range-status.available{color:#137448}.range-status.booked{color:#b42332}.range-status.blocked{color:#945c0c}
+
 .time-slot {
   display: flex;
   align-items: center;
@@ -216,7 +218,7 @@
   align-items: center;
   justify-content: center;
   padding: 12px 20px;
-  border: 1px solid #1554b5;
+  border: 1px solid #164e98;
   border-radius: 7px;
   font-size: 13px;
   font-weight: 700;
@@ -229,7 +231,7 @@
 }
 
 .availability-primary {
-  background: #1554b5;
+  background: #123e80;
   color: #fff;
   cursor: pointer;
 }
@@ -257,4 +259,5 @@
     align-items: flex-start;
     flex-direction: column;
   }
+  .range-selectors{grid-template-columns:1fr}
 }

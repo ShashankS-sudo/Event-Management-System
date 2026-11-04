@@ -7,12 +7,11 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
+const { getRuntimeConfig } = require("./config/runtimeConfig");
 
 const app = express();
-const allowedOrigins = (process.env.FRONTEND_ORIGINS || process.env.FRONTEND_ORIGIN || "http://localhost:5173")
-  .split(",")
-  .map((origin) => origin.trim())
-  .filter(Boolean);
+const runtimeConfig = getRuntimeConfig();
+if (runtimeConfig.trustProxy > 0) app.set("trust proxy", runtimeConfig.trustProxy);
 
 // Add security-related HTTP headers
 app.use(cookieParser());
@@ -21,7 +20,7 @@ app.use(helmet());
 // Allow our React frontend to communicate with the backend
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: runtimeConfig.origins,
     credentials: true,
   })
 );

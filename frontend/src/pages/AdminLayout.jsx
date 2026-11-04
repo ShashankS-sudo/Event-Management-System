@@ -65,6 +65,7 @@ function AdminLayout() {
         <nav className="admin-nav" aria-label="Administrative navigation">
           <NavLink to="/admin/dashboard">Dashboard</NavLink>
           <NavLink to="/admin/bookings">Booking Requests</NavLink>
+          <NavLink to="/admin/availability">Availability</NavLink>
           {user.role === "ADMIN" && <NavLink to="/admin/blocked-slots">Blocked Slots</NavLink>}
           {user.role === "ADMIN" && <NavLink to="/admin/manual-bookings">Manual Booking</NavLink>}
           {user.role === "ADMIN" && <NavLink to="/admin/venues">Venues</NavLink>}
