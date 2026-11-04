@@ -17,59 +17,7 @@ function fail(status, message) {
 }
 
 async function cancelCustomerBooking(user, bookingId) {
-  if (!mongoose.isValidObjectId(bookingId)) fail(400, "Invalid booking reference");
-  const session = await mongoose.startSession();
-  let updatedBooking;
-  try {
-    await session.withTransaction(async () => {
-      const booking = await Booking.findOne({ _id: bookingId, requester: user._id }).session(session);
-      if (!booking) fail(404, "Booking not found");
-      if (booking.source !== "REQUEST" || !["PENDING", "APPROVED"].includes(booking.status)) {
-        fail(409, "This booking cannot be cancelled by the customer");
-      }
-
-      const lock = await Venue.updateOne({ _id: booking.venue }, { $inc: { approvalVersion: 1 } }, { session });
-      if (!lock.matchedCount) fail(404, "Venue not found");
-      const venue = await Venue.findById(booking.venue).session(session);
-      const slot = venue?.timeSlots.find((item) => item.key === booking.slotKey);
-      if (!slot) fail(409, "The booking time slot is no longer configured");
-
-      const eventDate = booking.eventDate.toISOString().slice(0, 10);
-      const startsAt = campusMinuteToUtc(eventDate, slot.startMinute);
-      const deadline = startsAt.getTime() - CANCELLATION_DEADLINE_DAYS * 24 * 60 * 60 * 1000;
-      if (Date.now() > deadline) {
-        fail(409, `The customer cancellation deadline (${CANCELLATION_DEADLINE_DAYS} days before the event) has passed. Contact an approver for assistance.`);
-      }
-
-      const previousStatus = booking.status;
-      const decidedAt = new Date();
-      updatedBooking = await Booking.findOneAndUpdate(
-        { _id: booking._id, requester: user._id, status: previousStatus },
-        {
-          $set: { status: "CANCELLED", decidedBy: user._id, decidedAt },
-          $push: { history: { status: "CANCELLED", actor: user._id, reason: "Cancelled by customer", changedAt: decidedAt } },
-        },
-        { returnDocument: "after", runValidators: true, session }
-      );
-      if (!updatedBooking) fail(409, "This booking was changed before cancellation completed");
-
-      if (previousStatus === "APPROVED") {
-        const result = await Reservation.deleteOne({ booking: booking._id }, { session });
-        if (!result.deletedCount) fail(409, "The approved reservation could not be released");
-      }
-
-      await Notification.create([{
-        recipient: user._id,
-        type: "BOOKING_CANCELLED",
-        message: `Your booking request for ${venue.name} was cancelled.`,
-        relatedBooking: booking._id,
-      }], { session });
-      await EmailOutbox.create([bookingEmail(updatedBooking, venue, "CANCELLATION_REQUESTED")], { session, ordered: true });
-    });
-    return updatedBooking;
-  } finally {
-    await session.endSession();
-  }
+  return requestCancellationException(user, bookingId, "Customer requested cancellation.");
 }
 
 async function resubmitRejectedBooking(user, bookingId, input = {}) {
@@ -110,15 +58,15 @@ async function requestCancellationException(user, bookingId, reason) {
       const eventDate = booking.eventDate.toISOString().slice(0, 10);
       const startsAt = campusMinuteToUtc(eventDate, slot.startMinute);
       const deadline = startsAt.getTime() - CANCELLATION_DEADLINE_DAYS * 24 * 60 * 60 * 1000;
-      if (Date.now() <= deadline) fail(409, "Use the regular cancellation action before the cancellation deadline");
+      if (Date.now() > deadline) fail(409, `Cancellation requests must be submitted at least ${CANCELLATION_DEADLINE_DAYS} days before the event.`);
       const requestedAt = new Date();
       updated = await Booking.findOneAndUpdate({ _id: booking._id, "cancellationException.status": { $in: ["NONE", null] } }, {
         $set: { cancellationException: { status: "PENDING", reason: reason.trim(), requestedAt } },
       }, { returnDocument: "after", runValidators: true, session });
       if (!updated) fail(409, "An exception request was submitted concurrently");
       const approvers = await User.find({ isActive: true, role: { $in: ["ADMIN", "PRINCIPAL"] } }).select("_id role").session(session).lean();
-      const notifications = approvers.map((approver) => ({ recipient: approver._id, type: "CANCELLATION_EXCEPTION", message: `A customer requested a late cancellation for ${venue.name}. Review the booking.`, relatedBooking: booking._id }));
-      notifications.push({ recipient: user._id, type: "CANCELLATION_EXCEPTION", message: `Your late cancellation request for ${venue.name} was sent for review.`, relatedBooking: booking._id });
+      const notifications = approvers.map((approver) => ({ recipient: approver._id, type: "CANCELLATION_EXCEPTION", message: `A customer requested cancellation of ${venue.name}. Review the booking.`, relatedBooking: booking._id }));
+      notifications.push({ recipient: user._id, type: "CANCELLATION_EXCEPTION", message: `Your cancellation request for ${venue.name} was sent for management review.`, relatedBooking: booking._id });
       await Notification.create(notifications, { session, ordered: true });
       await EmailOutbox.create([bookingEmail(updated, venue, "CANCELLATION_REQUESTED")], { session, ordered: true });
     });
@@ -136,7 +84,7 @@ async function decideCancellationException(approver, bookingId, decision, decisi
   try {
     await session.withTransaction(async () => {
       const booking = await Booking.findById(bookingId).session(session);
-      if (!booking || booking.cancellationException?.status !== "PENDING") fail(404, "Pending cancellation exception not found");
+      if (!booking || booking.cancellationException?.status !== "PENDING") fail(404, "Pending cancellation request not found");
       const lock = await Venue.updateOne({ _id: booking.venue }, { $inc: { approvalVersion: 1 } }, { session });
       if (!lock.matchedCount) fail(404, "Venue not found");
       const venue = await Venue.findById(booking.venue).session(session);
@@ -148,13 +96,13 @@ async function decideCancellationException(approver, bookingId, decision, decisi
         "cancellationException.decidedAt": decidedAt,
         "cancellationException.decisionReason": decision === "REJECTED" ? decisionReason.trim() : "",
         ...(decision === "APPROVED" ? { status: "CANCELLED", decidedBy: approver._id, decidedAt } : {}),
-      }, ...(decision === "APPROVED" ? { $push: { history: { status: "CANCELLED", actor: approver._id, reason: "Late cancellation exception approved", changedAt: decidedAt } } } : {}) }, { returnDocument: "after", runValidators: true, session });
-      if (!updated) fail(409, "The exception was decided concurrently");
+      }, ...(decision === "APPROVED" ? { $push: { history: { status: "CANCELLED", actor: approver._id, reason: "Cancellation request approved", changedAt: decidedAt } } } : {}) }, { returnDocument: "after", runValidators: true, session });
+      if (!updated) fail(409, "The cancellation request was decided concurrently");
       if (decision === "APPROVED" && booking.status === "APPROVED") {
         const released = await Reservation.deleteOne({ booking: booking._id }, { session });
         if (!released.deletedCount) fail(409, "The approved reservation could not be released");
       }
-      await Notification.create([{ recipient: booking.requester, type: "CANCELLATION_EXCEPTION", message: decision === "APPROVED" ? `Your late cancellation request for ${venue.name} was approved.` : `Your late cancellation request for ${venue.name} was declined: ${decisionReason.trim()}`, relatedBooking: booking._id }], { session, ordered: true });
+      await Notification.create([{ recipient: booking.requester, type: "CANCELLATION_EXCEPTION", message: decision === "APPROVED" ? `Your cancellation request for ${venue.name} was approved.` : `Your cancellation request for ${venue.name} was declined: ${decisionReason.trim()}`, relatedBooking: booking._id }], { session, ordered: true });
     });
     return updated;
   } finally { await session.endSession(); }

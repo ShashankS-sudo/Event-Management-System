@@ -25,6 +25,7 @@ function setUpCancellation(t, { status = "APPROVED", eventDate } = {}) {
     reservationDelete: Reservation.deleteOne,
     notificationCreate: Notification.create,
     outboxCreate: EmailOutbox.create,
+    userFind: User.find,
   };
   const current = { _id: bookingId, requester: customer._id, venue: venueId, slotKey: "morning", eventDate: eventDate || new Date("2099-12-15T00:00:00.000Z"), status, source: "REQUEST" };
   let released = false;
@@ -37,6 +38,7 @@ function setUpCancellation(t, { status = "APPROVED", eventDate } = {}) {
   Reservation.deleteOne = async () => { released = true; return { deletedCount: 1 }; };
   Notification.create = async (docs) => { notifications.push(...docs); return docs; };
   EmailOutbox.create = async (docs) => docs;
+  User.find = () => ({ select() { return this; }, session() { return this; }, lean: async () => [] });
   t.after(() => {
     mongoose.startSession = originals.startSession;
     Booking.findOne = originals.bookingFind;
@@ -46,30 +48,33 @@ function setUpCancellation(t, { status = "APPROVED", eventDate } = {}) {
     Reservation.deleteOne = originals.reservationDelete;
     Notification.create = originals.notificationCreate;
     EmailOutbox.create = originals.outboxCreate;
+    User.find = originals.userFind;
   });
   return { current, get released() { return released; }, notifications };
 }
 
-test("cancels an approved customer booking and releases its reservation", async (t) => {
+test("submits an approved booking cancellation for management review without releasing its reservation", async (t) => {
   const state = setUpCancellation(t);
   const booking = await cancelCustomerBooking(customer, String(bookingId));
-  assert.equal(booking.status, "CANCELLED");
-  assert.equal(state.released, true);
-  assert.equal(state.notifications[0].type, "BOOKING_CANCELLED");
+  assert.equal(booking.status, "APPROVED");
+  assert.equal(booking.cancellationException.status, "PENDING");
+  assert.equal(state.released, false);
+  assert.equal(state.notifications.at(-1).type, "CANCELLATION_EXCEPTION");
 });
 
-test("cancels a pending request without trying to release a reservation", async (t) => {
+test("submits a pending booking cancellation for management review", async (t) => {
   const state = setUpCancellation(t, { status: "PENDING" });
   const booking = await cancelCustomerBooking(customer, String(bookingId));
-  assert.equal(booking.status, "CANCELLED");
+  assert.equal(booking.status, "PENDING");
+  assert.equal(booking.cancellationException.status, "PENDING");
   assert.equal(state.released, false);
 });
 
-test("rejects customer cancellation after the configurable deadline", async (t) => {
+test("rejects cancellation requests inside the four-day cutoff", async (t) => {
   const futureDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
   const date = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(futureDate);
   const state = setUpCancellation(t, { eventDate: new Date(`${date}T00:00:00.000Z`) });
-  await assert.rejects(cancelCustomerBooking(customer, String(bookingId)), (error) => error.status === 409 && /deadline/.test(error.message));
+  await assert.rejects(cancelCustomerBooking(customer, String(bookingId)), (error) => error.status === 409 && /at least 4 days/.test(error.message));
   assert.equal(state.current.status, "APPROVED");
 });
 
@@ -101,9 +106,9 @@ test("resubmission creates a new version linked to the rejected original", async
   assert.equal(result.status, "PENDING");
 });
 
-test("requests a late cancellation exception and notifies approvers", async (t) => {
+test("requests cancellation within the four-day lead and notifies approvers", async (t) => {
   const originals = { startSession: mongoose.startSession, bookingFind: Booking.findOne, bookingUpdate: Booking.findOneAndUpdate, venueFind: Venue.findById, userFind: User.find, notificationCreate: Notification.create, outboxCreate: EmailOutbox.create };
-  const current = { _id: bookingId, requester: customer._id, venue: venueId, slotKey: "morning", eventDate: new Date(Date.now() + 2 * 86400000), status: "APPROVED", source: "REQUEST", cancellationException: { status: "NONE" } };
+  const current = { _id: bookingId, requester: customer._id, venue: venueId, slotKey: "morning", eventDate: new Date(Date.now() + 20 * 86400000), status: "APPROVED", source: "REQUEST", cancellationException: { status: "NONE" } };
   const approver = { _id: new mongoose.Types.ObjectId(), role: "ADMIN" };
   const notifications = [];
   mongoose.startSession = async () => ({ withTransaction: async (callback) => callback(), endSession: async () => {} });

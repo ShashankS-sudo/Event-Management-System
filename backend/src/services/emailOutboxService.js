@@ -16,7 +16,7 @@ function bookingEmail(booking, venue, type = "BOOKING_SUBMITTED") {
     ? `Venue cancellation request · ${venue.name} · ${reference}`
     : `${type === "BOOKING_RESUBMITTED" ? "Revised venue request" : "New venue booking request"} · ${venue.name} · ${reference}`;
   const lines = [
-    isCancellation ? "A customer requested a late cancellation." : "A customer submitted a venue booking request.",
+    isCancellation ? "A customer submitted a venue cancellation request for management review." : "A customer submitted a venue booking request.",
     "",
     `Booking reference: ${reference}`,
     `Venue: ${venue.name}`,

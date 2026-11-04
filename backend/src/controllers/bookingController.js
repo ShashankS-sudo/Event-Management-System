@@ -53,7 +53,7 @@ async function decideBooking(req, res, next) {
 async function cancelMyBooking(req, res, next) {
   try {
     const booking = await customerBookingActions.cancelCustomerBooking(req.user, req.params.id);
-    return res.status(200).json({ success: true, message: "Booking cancelled", booking });
+      return res.status(202).json({ success: true, message: "Cancellation request sent for management review", booking });
   } catch (error) {
     return next(error);
   }
@@ -71,7 +71,7 @@ async function resubmitMyBooking(req, res, next) {
 async function requestCancellationException(req, res, next) {
   try {
     const booking = await customerBookingActions.requestCancellationException(req.user, req.params.id, req.body?.reason);
-    return res.status(201).json({ success: true, message: "Cancellation exception sent for review", booking });
+      return res.status(201).json({ success: true, message: "Cancellation request sent for management review", booking });
   } catch (error) { return next(error); }
 }
 

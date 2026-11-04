@@ -60,7 +60,7 @@ function AdminBookings() {
     setSubmitting(true); setError(""); setNotice("");
     try {
       await api.patch(`/bookings/${selected._id}/cancellation-exception/decision`, { decision, ...(decision === "REJECTED" ? { reason: rejectionReason } : {}) });
-      setNotice(`Late cancellation ${decision.toLowerCase()}.`); setSelected(null); setRejectionReason(""); setLoading(true); setReloadKey((current) => current + 1);
+      setNotice(`Cancellation request ${decision.toLowerCase()}.`); setSelected(null); setRejectionReason(""); setLoading(true); setReloadKey((current) => current + 1);
     } catch (requestError) { setError(requestError.response?.data?.message || "Could not save the exception decision."); }
     finally { setSubmitting(false); }
   }
@@ -69,7 +69,7 @@ function AdminBookings() {
     <main className="admin-content">
       <div className="admin-page-heading"><div><span className="admin-eyebrow">BOOKING MANAGEMENT</span><h1>Approval Queue</h1><p>Review requests and record an approval decision.</p></div><button className="admin-refresh" type="button" onClick={() => { setLoading(true); setError(""); setReloadKey((current) => current + 1); }} disabled={loading}>Refresh</button></div>
       <div className="admin-status-tabs" role="tablist" aria-label="Filter booking requests">
-        {statuses.map((item) => <button type="button" key={item} role="tab" aria-selected={status === item} className={status === item ? "active" : ""} onClick={() => { setLoading(true); setError(""); setSearchParams(item === "PENDING" ? {} : { status: item }); }}>{item === "ALL" ? "All requests" : item === "CANCELLATION_EXCEPTIONS" ? "Late cancellations" : `${item[0]}${item.slice(1).toLowerCase()}`}</button>)}
+        {statuses.map((item) => <button type="button" key={item} role="tab" aria-selected={status === item} className={status === item ? "active" : ""} onClick={() => { setLoading(true); setError(""); setSearchParams(item === "PENDING" ? {} : { status: item }); }}>{item === "ALL" ? "All requests" : item === "CANCELLATION_EXCEPTIONS" ? "Cancellations" : `${item[0]}${item.slice(1).toLowerCase()}`}</button>)}
       </div>
       {notice && <p className="admin-notice" role="status">{notice}</p>}
       {error && <p className="admin-error" role="alert">{error}</p>}
@@ -81,7 +81,7 @@ function AdminBookings() {
             const date = new Date(booking.eventDate).toLocaleDateString("en-IN", { timeZone: "UTC", day: "2-digit", month: "short", year: "numeric" });
             const slotLabel = booking.venue?.timeSlots?.find((slot) => slot.key === booking.slotKey)?.label || booking.slotKey;
             return <article key={booking._id} className="admin-booking-row">
-              <div className="admin-booking-info"><div className="admin-booking-title"><h2>{booking.eventTitle}</h2><span className={`admin-status ${booking.status.toLowerCase()}`}>{status === "CANCELLATION_EXCEPTIONS" ? "LATE CANCELLATION" : booking.status}</span></div><p>{booking.venue?.name} · {booking.requester?.name || "Customer"}</p><small>{date} · {slotLabel} · {booking.expectedAttendees} expected</small></div>
+              <div className="admin-booking-info"><div className="admin-booking-title"><h2>{booking.eventTitle}</h2><span className={`admin-status ${booking.status.toLowerCase()}`}>{status === "CANCELLATION_EXCEPTIONS" ? "CANCELLATION REQUEST" : booking.status}</span></div><p>{booking.venue?.name} · {booking.requester?.name || "Customer"}</p><small>{date} · {slotLabel} · {booking.expectedAttendees} expected</small></div>
               <button className="admin-review-button" type="button" onClick={() => { setSelected(booking); setRejectionReason(""); }}>Review</button>
             </article>;
           })}
@@ -103,7 +103,7 @@ function AdminBookings() {
               <p><strong>Facilities</strong><span>{selected.facilitiesRequested?.join(", ") || "None"}</span></p>
               <p className="admin-modal-wide"><strong>Description</strong><span>{selected.eventDescription}</span></p>
               {selected.additionalRequirements && <p className="admin-modal-wide"><strong>Additional requirements</strong><span>{selected.additionalRequirements}</span></p>}
-              {selected.cancellationException?.status === "PENDING" && <p className="admin-modal-wide"><strong>Late cancellation reason</strong><span>{selected.cancellationException.reason}</span></p>}
+              {selected.cancellationException?.status === "PENDING" && <p className="admin-modal-wide"><strong>Cancellation reason</strong><span>{selected.cancellationException.reason}</span></p>}
             </div>
             {selected.cancellationException?.status === "PENDING" ? (
               <div className="admin-decision-actions"><label htmlFor="rejection-reason">Reason (required to decline)</label><textarea id="rejection-reason" value={rejectionReason} onChange={(event) => setRejectionReason(event.target.value)} minLength={3} maxLength={1000} rows={3} placeholder="Explain why this cancellation cannot be approved" /><div><button className="admin-reject-button" type="button" onClick={() => decideException("REJECTED")} disabled={submitting || rejectionReason.trim().length < 3}>{submitting ? "Saving…" : "Decline Request"}</button><button className="admin-approve-button" type="button" onClick={() => decideException("APPROVED")} disabled={submitting}>{submitting ? "Saving…" : "Approve Cancellation"}</button></div></div>

@@ -2,11 +2,11 @@
 ## Implementation Status Report
 
 **Assessment date:** 4 November 2026
-**Scope:** Initial repository review, followed by incremental implementation of venue, booking, availability, customer and approval workflows, notifications, separate administration screens, blocked-slot management, manual reservations, customer notification/guidelines UI, and shared session/sign-out. Remaining operational workflows are in progress.
+**Scope:** Initial repository review, followed by incremental implementation of venue, booking, availability, customer and approval workflows, notifications, separate administration screens, blocked-slot management, manual reservations, customer notification/guidelines UI, shared session/sign-out, and management email notifications. SMTP delivery awaits the Gmail App Password.
 
 ## 1. Executive summary
 
-The repository contains a React/Vite frontend, an Express/Mongoose backend, and an authentication implementation. Backend models and APIs cover venues, booking requests, approved reservations, blocked periods, notifications, approval, manual reservations, customer cancellation/exception/resubmission, and ADMIN venue management. The frontend includes API-backed venue browsing, guidelines, booking request/review/confirmation, customer history/notification pages, shared session state, sign-out, About and Contact pages, and admin approval/block/manual-booking/venue screens. Management email is queued; SMTP delivery credentials remain unconfigured.
+The repository contains a React/Vite frontend, an Express/Mongoose backend, and an authentication implementation. Backend models and APIs cover venues, booking requests, approved reservations, blocked periods, notifications, approval, manual reservations, customer cancellation requests/resubmission, and ADMIN venue management. The frontend includes API-backed venue browsing, guidelines, booking request/review/confirmation, customer history/notification pages, shared session state, sign-out, About and Contact pages, and admin approval/block/manual-booking/venue screens. Management email is queued; SMTP delivery awaits the Gmail App Password.
 
 The supplied screenshots are visual/workflow references. Venue names, capacities, daily hours, SJBIT Campus locations, and the no-facilities configuration have been confirmed by the user and applied. Screenshot dates and booking statuses are not project data.
 
@@ -44,8 +44,7 @@ The supplied screenshots are visual/workflow references. Venue names, capacities
 - ADMIN users can list, create, and remove blocked periods through `/api/admin/blocked-slots`. Creation shares the venue transaction lock, refuses overlap with approved reservations, and rejects/notifies conflicting pending requests.
 - ADMIN users can create immediate manual reservations through `POST /api/admin/manual-bookings`; these use the Booking model, share transaction locks, include a cleaning buffer, and reject/notify overlapping pending requests.
 - ADMIN users can list, create, and update venue records through `/api/admin/venues`, including status, descriptive fields, capacity, facilities, operating hours, and time slots.
-- Customers can cancel eligible bookings through `PATCH /api/bookings/:id/cancel`; the four-day cutoff is configurable with `CANCELLATION_DEADLINE_DAYS` (default 4). Approved reservations are released in the cancellation transaction.
-- Customers can request a late-cancellation exception through `POST /api/bookings/:id/cancellation-exception`; eligible approvers decide through `PATCH /api/bookings/:id/cancellation-exception/decision`. Approval cancels the request and releases an approved reservation transactionally.
+- Customers can submit cancellation requests through `POST /api/bookings/:id/cancellation-exception` (or the compatibility `PATCH /api/bookings/:id/cancel` route) at least four days before the event. A request stays pending and its reservation remains held until ADMIN/PRINCIPAL management approves or rejects it; approval cancels the booking and releases its reservation transactionally.
 - Customers can resubmit rejected requests through `POST /api/bookings/:id/resubmit`; the previous rejected record is retained and linked from the new pending version.
 - In-app notifications are created in the same transaction as request submission and decisions. Authenticated users can list their own notifications, see unread count, and mark one or all as read through `/api/notifications`.
 
@@ -65,12 +64,12 @@ The supplied screenshots are visual/workflow references. Venue names, capacities
 - **Authentication experience:** Shared session state, sign-out, role-aware post-login routing, and the email login label are implemented. Account recovery remains unavailable; ongoing privileged-account management and production session/CSRF settings need work.
 - **Registration:** Customers provide organization contact name, phone, email, and organization name on each booking request. Organization claims are not verified, per user direction.
 - **Venue data:** Four active venue records use the confirmed names, capacities, daily hours, SJBIT Campus location, and empty facilities lists.
-- **Bookings:** Request, own-booking, approval, manual reservation, cancellation, late-cancellation exception, and resubmission APIs plus user booking screens exist. New customer requests require an organization contact name, phone, email, and organization name. The Atlas integration checks cover simultaneous same-slot approvals, manual-reservation-vs-approval, blocked-period-vs-approval, booking-submission-vs-block, regular cancellation, approved late exceptions, and concurrent late-exception submissions/decisions. Other transaction flows still need coverage.
+- **Bookings:** Request, own-booking, approval, manual reservation, management-reviewed cancellation, and resubmission APIs plus user booking screens exist. New customer requests require an organization contact name, phone, email, and organization name. Atlas transaction checks cover simultaneous same-slot approvals, manual-reservation-vs-approval, blocked-period-vs-approval, booking-submission-vs-block, and the prior cancellation flow; the revised manager-reviewed cancellation check should be rerun before release.
 - **Availability and reservations:** Backend availability calculation, approval reservation writes, and ADMIN blocked-period writes exist; the frontend availability screen is connected. Atlas transaction support and the covered write races are verified; other transaction interactions remain untested.
 - **Administrative capabilities:** Dashboard, navigation, approval queue, blocked-slot management, manual booking, venue/slot management, and controlled initial ADMIN provisioning now exist. Ongoing privileged account administration remains.
 - **Authorization policy:** The approval service enforces Principal/Admin access and CSE HOD access only for Seminar Hall. The named demo Principal account has been provisioned; no other privileged accounts were requested.
 - **Notifications and guidelines:** In-app notifications exist. Booking and cancellation email messages are transactionally queued for management; actual delivery needs the Gmail App Password in the local environment file.
-- **Verification:** 55 backend unit-level checks pass. They mock transaction sessions. Atlas accepted a read-only transaction, and isolated integration checks verified approval-vs-approval, manual-vs-approval, block-vs-approval, booking-submission-vs-block, regular and late cancellation, and cancellation-exception races.
+- **Verification:** 55 backend unit-level checks pass, including the manager-reviewed cancellation request flow; frontend lint and production build pass. These unit tests mock transaction sessions. Atlas previously accepted a read-only transaction and passed the earlier write-race checks. The updated cancellation integration script is in place and should be run before release.
 
 ## 5. Architecture and risk observations
 
@@ -225,11 +224,11 @@ The admin dashboard, approval queue, blocked-slot management, manual reservation
 - Added a Home navigation link to the notification page; backend read/list routes were already in place.
 - Verification: frontend ESLint and Vite production build passed.
 
-### Component 14 — Late cancellation exception workflow (complete; Atlas concurrency verification pending)
+### Component 14 — Manager-reviewed cancellation workflow (complete; updated Atlas verification pending)
 
-- Added customer exception requests with a required reason after the configured cutoff, plus transactional notifications to the customer and eligible approvers.
-- Added an approver queue filter and decision actions. Approval cancels the booking and releases an approved reservation; rejection records the decision and sends the customer an update.
-- Verification: 52 backend tests passed, including exception-request notification coverage; frontend ESLint and Vite production build passed.
+- Added customer cancellation requests with a required reason, enforcing the four-day cutoff and notifying the management queue.
+- Requests remain pending while the existing booking/reservation stays in effect. ADMIN/PRINCIPAL approval cancels it and releases an approved reservation; rejection records the decision and sends the customer an update.
+- Verification: all 55 backend tests pass, including pending-review and cutoff coverage; frontend ESLint and Vite production build pass. The revised Atlas cancellation transaction check has not yet been rerun.
 
 ### Component 15 — Guidelines and API-backed venue pages (complete; official policy data pending)
 
@@ -325,7 +324,7 @@ The admin dashboard, approval queue, blocked-slot management, manual reservation
 
 - Seeded the confirmed names and capacities: Auditorium (1,500), Basketball Ground (150), Cricket Ground (5,000), and Seminar Hall (100). Kept the Seminar Hall route slug so the CSE HOD authorization remains scoped correctly.
 - Configured daily opening hours: 8:30 a.m.–8:30 p.m. for the Auditorium and grounds; 8:30 a.m.–4:30 p.m. for Seminar Hall. Generated continuous hourly ranges of one or more hours, and kept the one-hour cleanup buffer in reservation conflict calculations.
-- Enforced the two-day minimum booking notice. Kept the four-day customer cancellation cutoff; late cancellation requests are decided by ADMIN/PRINCIPAL management users, with the CSE HOD excluded from cancellation decisions.
+- Enforced the two-day minimum booking notice and a four-day cancellation request cutoff; management reviews every cancellation request, and the CSE HOD cannot decide cancellations.
 - Set all four venue locations to “SJBIT Campus” and their facilities lists to empty, per the user's clarification.
 - Added required per-request organization contact name, phone, email, and organization name. Admin approvers can review those contact details from the request.
 - Updated the active Atlas venue records. The seed command checked for pending/approved bookings that would use removed slot keys before applying schedule changes; none prevented the update. Verification returned all four names/capacities/hours and 78 hourly ranges for each long-day venue and 36 for Seminar Hall.
@@ -333,8 +332,8 @@ The admin dashboard, approval queue, blocked-slot management, manual reservation
 
 ### Component 30 — Management email outbox and demo approver provisioning (implemented; SMTP password pending)
 
-- Added a MongoDB email outbox. Booking submissions, resubmissions, regular cancellations, and late-cancellation requests enqueue messages in the same transaction as the related booking change, addressed to the management inbox `1jb24cs172gdg@gmail.com`.
+- Added a MongoDB email outbox. Booking submissions, resubmissions, and cancellation requests enqueue messages in the same transaction as the related booking change, addressed to the management inbox `1jb24cs172gdg@gmail.com`.
 - Added an SMTP delivery worker with retry/backoff and stale-send recovery. It activates when `SMTP_HOST`, `SMTP_USER`, and `SMTP_PASSWORD` are set. The repository includes a secret-free `.env.example`; no SMTP password was written to the workspace.
 - Extended the safe initial account provisioning script to support the supplied demo Principal identity (Shashank S, Principal, CSE, `1jb24cs172gdg@gmail.com`). The user-authorized local demo account was provisioned with the temporary password they supplied; provisioning values were removed from `.env` afterward. Other approver accounts remain unconfigured as requested.
 - Configured Gmail SMTP host, port, sender, and management recipient in the ignored local `.env`. The App Password is still blank, so the outbox queues messages until it is added.
-- Verification: the 55 backend unit tests pass. Isolated Atlas cancellation and concurrency checks pass with assertions that booking and cancellation email records are created transactionally. Frontend lint and production build pass.
+- Verification: all 55 backend unit tests pass, including cancellation queuing. The updated Atlas manager-reviewed cancellation integration check is available but has not yet been rerun. Frontend lint and production build pass.

@@ -19,7 +19,7 @@ Booking and cancellation emails are written to the MongoDB outbox as part of the
 - Backend: `cd backend` then `npm test`.
 - Atlas transaction capability (read-only): `cd backend` then `npm run db:check-transactions`. This check reads one active venue inside a transaction and does not modify records.
 - Concurrent booking writes: `cd backend` then `npm run db:check-concurrency`. It creates a uniquely named temporary database on the configured cluster, races approval against another approval, a manual reservation, and an administrative block, then drops that database afterward. Use a database credential permitted to create/drop databases.
-- Cancellation transactions: `cd backend` then `npm run db:check-cancellations`. It uses and drops a separate temporary database to verify reservation release and transactional notifications for regular and approved late cancellation.
+- Cancellation transactions: `cd backend` then `npm run db:check-cancellations`. It uses and drops a separate temporary database to verify manager-reviewed cancellation, reservation release after approval, and concurrent request/decision handling.
 - Frontend: `cd frontend` then `npm run lint` and `npm run build`.
 
 See [IMPLEMENTATION_REPORT.md](IMPLEMENTATION_REPORT.md) for current scope, verification results, and remaining release work. Venue facts and institutional policy details must be confirmed with SJBIT before production use.

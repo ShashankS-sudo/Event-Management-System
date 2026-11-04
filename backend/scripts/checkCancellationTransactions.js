@@ -67,24 +67,21 @@ async function checkCancellationTransactions() {
       isActive: true,
     });
 
-    const normalCancellation = await createApprovedRequest(venue, requester, futureCampusDate(10), "Temporary Normal Cancellation");
-    const cancelled = await cancelCustomerBooking(requester, String(normalCancellation._id));
+    const normalCancellation = await createApprovedRequest(venue, requester, futureCampusDate(10), "Temporary Cancellation Request");
+    const pendingCancellation = await cancelCustomerBooking(requester, String(normalCancellation._id));
     const normalReservation = await Reservation.findOne({ booking: normalCancellation._id }).lean();
     const normalCancellationEmails = await EmailOutbox.countDocuments({ relatedBooking: normalCancellation._id, status: "PENDING" });
-    if (cancelled.status !== "CANCELLED" || normalReservation || normalCancellationEmails !== 1) throw new Error("Approved customer cancellation did not release its reservation and queue one management email");
-
-    const lateCancellation = await createApprovedRequest(venue, requester, futureCampusDate(2), "Temporary Late Cancellation");
-    const pendingException = await requestCancellationException(requester, String(lateCancellation._id), "The event schedule changed unexpectedly.");
-    if (pendingException.cancellationException.status !== "PENDING") throw new Error("Late cancellation exception was not recorded as pending");
-    const decided = await decideCancellationException(principal, String(lateCancellation._id), "APPROVED");
-    const lateReservation = await Reservation.findOne({ booking: lateCancellation._id }).lean();
-    const recipientNotifications = await Notification.countDocuments({ relatedBooking: lateCancellation._id });
-    const lateCancellationEmails = await EmailOutbox.countDocuments({ relatedBooking: lateCancellation._id, status: "PENDING" });
-    if (decided.status !== "CANCELLED" || decided.cancellationException.status !== "APPROVED" || lateReservation || recipientNotifications < 3 || lateCancellationEmails !== 1) {
-      throw new Error("Approved late cancellation did not atomically cancel, release, and notify");
+    if (pendingCancellation.status !== "APPROVED" || pendingCancellation.cancellationException.status !== "PENDING" || !normalReservation || normalCancellationEmails !== 1) {
+      throw new Error("Customer cancellation request was not held for management review with its reservation intact and one email queued");
+    }
+    const decided = await decideCancellationException(principal, String(normalCancellation._id), "APPROVED");
+    const releasedReservation = await Reservation.findOne({ booking: normalCancellation._id }).lean();
+    const recipientNotifications = await Notification.countDocuments({ relatedBooking: normalCancellation._id });
+    if (decided.status !== "CANCELLED" || decided.cancellationException.status !== "APPROVED" || releasedReservation || recipientNotifications < 3) {
+      throw new Error("Approved cancellation request did not atomically cancel, release, and notify");
     }
 
-    const racingException = await createApprovedRequest(venue, requester, futureCampusDate(2), "Temporary Concurrent Exception Decision");
+    const racingException = await createApprovedRequest(venue, requester, futureCampusDate(10), "Temporary Concurrent Cancellation Decision");
     const requestedRace = await requestCancellationException(requester, String(racingException._id), "A schedule change requires a cancellation review.");
     if (requestedRace.cancellationException.status !== "PENDING") throw new Error("Concurrent decision test exception was not pending");
     const notificationsBeforeRace = await Notification.countDocuments({ relatedBooking: racingException._id, type: "CANCELLATION_EXCEPTION" });
@@ -93,7 +90,7 @@ async function checkCancellationTransactions() {
       decideCancellationException(admin, String(racingException._id), "REJECTED", "Keep the reservation as scheduled."),
     ]);
     const raceWinners = raceResults.filter((result) => result.status === "fulfilled");
-    if (raceWinners.length !== 1) throw new Error(`Expected exactly one cancellation-exception decision to commit; got ${raceWinners.length}`);
+    if (raceWinners.length !== 1) throw new Error(`Expected exactly one cancellation decision to commit; got ${raceWinners.length}`);
     const finalRaceBooking = await Booking.findById(racingException._id).lean();
     const finalRaceReservation = await Reservation.findOne({ booking: racingException._id }).lean();
     const raceDecisionNotifications = await Notification.countDocuments({ relatedBooking: racingException._id, type: "CANCELLATION_EXCEPTION" });
@@ -110,7 +107,7 @@ async function checkCancellationTransactions() {
       throw new Error(`Unexpected final cancellation-exception decision: ${finalExceptionDecision}`);
     }
 
-    const racingSubmission = await createApprovedRequest(venue, requester, futureCampusDate(2), "Temporary Concurrent Exception Submission");
+    const racingSubmission = await createApprovedRequest(venue, requester, futureCampusDate(10), "Temporary Concurrent Cancellation Submission");
     const submissionResults = await Promise.allSettled([
       requestCancellationException(requester, String(racingSubmission._id), "The event schedule changed unexpectedly."),
       requestCancellationException(requester, String(racingSubmission._id), "The venue is no longer needed for this event."),
@@ -130,7 +127,7 @@ async function checkCancellationTransactions() {
       } finally { await mongoose.disconnect(); }
     }
   }
-  if (passed) process.stdout.write("Atlas cancellation transaction checks passed in an isolated temporary database: regular cancellation, approved late exception, concurrent exception submission, and competing exception decisions preserved booking/reservation consistency and notifications.\n");
+  if (passed) process.stdout.write("Atlas cancellation transaction checks passed in an isolated temporary database: manager-reviewed cancellation, concurrent request submission, and competing cancellation decisions preserved booking/reservation consistency and notifications.\n");
 }
 
 checkCancellationTransactions().catch((error) => {
